@@ -22,6 +22,7 @@
  
 
 ## Deployment
+  - deploy using  github
   - read @docs/production.md
 
   
