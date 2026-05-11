@@ -1,65 +1,130 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+
+interface DashboardData {
+  totalTopics: number;
+  totalResults: number;
+  passCount: number;
+  failCount: number;
+  pendingCount: number;
+  recentResults: ResultRow[];
+}
+
+interface ResultRow {
+  id: number;
+  kpi_id: number;
+  kpi_name: string;
+  target: number | null;
+  result: number | null;
+  percent: number | null;
+  status: string;
+  note: string | null;
+  report_date: string | null;
+}
+
+const statusColors: Record<string, string> = {
+  pass: "pill-pass",
+  fail: "pill-fail",
+  pending: "pill-pending",
+};
+
+export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then((res) => res.json())
+      .then((json) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="loading-state">Loading dashboard...</div>;
+  }
+
+  if (!data) {
+    return <div className="alert">Failed to load dashboard data.</div>;
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div>
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h2 className="page-title">Dashboard</h2>
+          <p className="page-subtitle">Monitor KPI progress, result volume, and recent reporting activity.</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="metric-card">
+          <p className="metric-label">KPI Topics</p>
+          <p className="metric-value">{data.totalTopics}</p>
+        </div>
+        <div className="metric-card">
+          <p className="metric-label">Total Results</p>
+          <p className="metric-value">{data.totalResults}</p>
+        </div>
+        <div className="metric-card">
+          <p className="metric-label">Pass / Fail</p>
+          <p className="metric-value">
+            <span className="text-[#14764a]">{data.passCount}</span>
+            <span className="text-[#9aa8a2] mx-1">/</span>
+            <span className="text-[#c24141]">{data.failCount}</span>
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="metric-card">
+          <p className="metric-label">Pending</p>
+          <p className="metric-value text-[#9a6a12]">{data.pendingCount}</p>
         </div>
-      </main>
+      </div>
+
+      <div className="panel">
+        <div className="panel-pad border-b border-[#dfe8e3]">
+          <h3 className="section-title mb-0">Recent Results</h3>
+        </div>
+        <div className="data-table-wrap">
+        <table className="data-table text-sm">
+          <thead>
+            <tr>
+              <th>KPI</th>
+              <th>Target</th>
+              <th>Result</th>
+              <th>%</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.recentResults.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="empty-cell">No results yet</td>
+              </tr>
+            ) : (
+              data.recentResults.map((r) => (
+                <tr key={r.id}>
+                  <td className="font-semibold text-[#17211d]">{r.kpi_name}</td>
+                  <td>{r.target ?? "-"}</td>
+                  <td>{r.result ?? "-"}</td>
+                  <td>{r.percent ? `${r.percent}%` : "-"}</td>
+                  <td>
+                    <span className={`pill ${statusColors[r.status] || "pill-muted"}`}>
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="text-[#64746d]">{r.report_date || "-"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        </div>
+      </div>
     </div>
   );
 }
