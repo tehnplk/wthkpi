@@ -8,6 +8,7 @@ const db: Knex = knex({
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "wthkpi",
+    socketPath: undefined,
   },
   pool: { min: 1, max: 10 },
 });
