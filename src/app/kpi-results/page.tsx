@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  CheckCircle2,
+  ClipboardCheck,
+  Clock3,
+  Filter,
+  Plus,
+  Trash2,
+  TriangleAlert,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Topic {
@@ -23,6 +32,18 @@ const statusColors: Record<string, string> = {
   pass: "pill-pass",
   fail: "pill-fail",
   pending: "pill-pending",
+};
+
+const statusLabels: Record<string, string> = {
+  pass: "ผ่าน",
+  fail: "ไม่ผ่าน",
+  pending: "รอดำเนินการ",
+};
+
+const statusIcons = {
+  pass: CheckCircle2,
+  fail: TriangleAlert,
+  pending: Clock3,
 };
 
 export default function KpiResultsPage() {
@@ -99,27 +120,32 @@ export default function KpiResultsPage() {
       loadResults();
     } else {
       const data = await res.json();
-      setError(data.error || "Failed to create");
+      setError(data.error || "สร้างข้อมูลไม่สำเร็จ");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Delete this result?")) return;
+    if (!confirm("ลบผลรายงานนี้หรือไม่?")) return;
     const res = await fetch(`/api/kpi-results/${id}`, { method: "DELETE" });
     if (res.ok) loadResults();
   };
 
   if (loading) {
-    return <div className="loading-state">Loading KPI results...</div>;
+    return <div className="loading-state">กำลังโหลดผล KPI...</div>;
   }
 
   return (
     <div>
       <header className="page-heading">
         <div>
-          <p className="eyebrow">Reporting</p>
-          <h2 className="page-title">KPI Results</h2>
-          <p className="page-subtitle">Record target achievement, report dates, and current KPI status.</p>
+          <p className="eyebrow">รายงานผล</p>
+          <div className="flex items-center gap-3">
+            <span className="icon-badge">
+              <ClipboardCheck size={18} aria-hidden="true" />
+            </span>
+            <h2 className="page-title">ผล KPI</h2>
+          </div>
+          <p className="page-subtitle">บันทึกเป้าหมาย ผลลัพธ์ วันที่รายงาน และสถานะของ KPI</p>
         </div>
       </header>
 
@@ -128,64 +154,71 @@ export default function KpiResultsPage() {
       )}
 
       <div className="form-panel mb-6">
-        <h3 className="section-title">Add Result</h3>
+        <h3 className="section-title flex items-center gap-2">
+          <Plus size={17} aria-hidden="true" />
+          เพิ่มผลรายงาน
+        </h3>
         <form onSubmit={handleCreate} className="space-y-3 max-w-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">KPI Topic</label>
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">หัวข้อ KPI</label>
               <select value={kpiId} onChange={(e) => setKpiId(e.target.value)} required>
-                <option value="">Select KPI topic...</option>
+                <option value="">เลือกหัวข้อ KPI...</option>
                 {topics.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">Report Date</label>
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">วันที่รายงาน</label>
               <input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">Target</label>
-              <input type="number" step="0.01" placeholder="Target value" value={target} onChange={(e) => setTarget(e.target.value)} />
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">เป้าหมาย</label>
+              <input type="number" step="0.01" placeholder="ค่าเป้าหมาย" value={target} onChange={(e) => setTarget(e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">Result</label>
-              <input type="number" step="0.01" placeholder="Actual result" value={resultVal} onChange={(e) => setResultVal(e.target.value)} />
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">ผลลัพธ์</label>
+              <input type="number" step="0.01" placeholder="ผลลัพธ์จริง" value={resultVal} onChange={(e) => setResultVal(e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">Status</label>
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">สถานะ</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option value="pending">Pending</option>
-                <option value="pass">Pass</option>
-                <option value="fail">Fail</option>
+                <option value="pending">รอดำเนินการ</option>
+                <option value="pass">ผ่าน</option>
+                <option value="fail">ไม่ผ่าน</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#64746d] font-semibold mb-1">Note</label>
-              <input type="text" placeholder="Optional note" value={note} onChange={(e) => setNote(e.target.value)} />
+              <label className="block text-xs text-[#64746d] font-semibold mb-1">หมายเหตุ</label>
+              <input type="text" placeholder="หมายเหตุเพิ่มเติม" value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
           </div>
           <button
             type="submit"
             className="btn btn-primary"
           >
-            Add Result
+            <Plus size={16} aria-hidden="true" />
+            เพิ่มผลรายงาน
           </button>
         </form>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="filter-bar flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="hidden sm:flex items-center text-[#64746d]">
+          <Filter size={18} aria-hidden="true" />
+        </div>
         <select value={filterKpiId} onChange={(e) => setFilterKpiId(e.target.value)} className="max-w-xs">
-          <option value="">All KPIs</option>
+          <option value="">KPI ทั้งหมด</option>
           {topics.map((t) => (
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="max-w-[140px]">
-          <option value="">All status</option>
-          <option value="pass">Pass</option>
-          <option value="fail">Fail</option>
-          <option value="pending">Pending</option>
+          <option value="">ทุกสถานะ</option>
+          <option value="pass">ผ่าน</option>
+          <option value="fail">ไม่ผ่าน</option>
+          <option value="pending">รอดำเนินการ</option>
         </select>
       </div>
 
@@ -194,40 +227,45 @@ export default function KpiResultsPage() {
           <thead>
             <tr>
               <th>KPI</th>
-              <th>Target</th>
-              <th>Result</th>
+              <th>เป้าหมาย</th>
+              <th>ผลลัพธ์</th>
               <th>%</th>
-              <th>Status</th>
-              <th>Note</th>
-              <th>Date</th>
-              <th className="w-24">Actions</th>
+              <th>สถานะ</th>
+              <th>หมายเหตุ</th>
+              <th>วันที่</th>
+              <th className="w-24">จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {results.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="empty-cell">No results found</td>
+              <tr className="empty-row">
+                <td colSpan={8} className="empty-cell">ไม่พบผลรายงาน</td>
               </tr>
             ) : (
               results.map((r) => (
                 <tr key={r.id}>
-                  <td className="font-semibold text-[#17211d]">{r.kpi_name}</td>
-                  <td>{r.target ?? "-"}</td>
-                  <td>{r.result ?? "-"}</td>
-                  <td>{r.percent != null ? `${r.percent}%` : "-"}</td>
-                  <td>
+                  <td data-label="KPI" className="font-semibold text-[#17211d]">{r.kpi_name}</td>
+                  <td data-label="เป้าหมาย">{r.target ?? "-"}</td>
+                  <td data-label="ผลลัพธ์">{r.result ?? "-"}</td>
+                  <td data-label="%">{r.percent != null ? `${r.percent}%` : "-"}</td>
+                  <td data-label="สถานะ">
                     <span className={`pill ${statusColors[r.status] || "pill-muted"}`}>
-                      {r.status}
+                      {(() => {
+                        const StatusIcon = statusIcons[r.status as keyof typeof statusIcons] || Clock3;
+                        return <StatusIcon size={13} aria-hidden="true" />;
+                      })()}
+                      {statusLabels[r.status] || r.status}
                     </span>
                   </td>
-                  <td className="max-w-[220px] truncate text-[#64746d]">{r.note || "-"}</td>
-                  <td className="text-[#64746d] whitespace-nowrap">{r.report_date || "-"}</td>
-                  <td>
+                  <td data-label="หมายเหตุ" className="max-w-[220px] truncate text-[#64746d]">{r.note || "-"}</td>
+                  <td data-label="วันที่" className="text-[#64746d] whitespace-nowrap">{r.report_date || "-"}</td>
+                  <td data-label="จัดการ">
                     <button
                       onClick={() => handleDelete(r.id)}
                       className="btn btn-danger min-h-8 px-3 py-1 text-xs"
                     >
-                      Delete
+                      <Trash2 size={13} aria-hidden="true" />
+                      ลบ
                     </button>
                   </td>
                 </tr>

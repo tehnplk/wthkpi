@@ -9,7 +9,7 @@ export async function GET(
     const { id } = await params;
     const topic = await db("kpi_topic").where({ id }).first();
     if (!topic) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     return NextResponse.json(topic);
   } catch (error: unknown) {
@@ -31,7 +31,7 @@ export async function PUT(
       user_owner: body.user_owner || null,
     });
     if (!updated) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     const topic = await db("kpi_topic").where({ id }).first();
     return NextResponse.json(topic);
@@ -49,7 +49,7 @@ export async function DELETE(
     const { id } = await params;
     const deleted = await db("kpi_topic").where({ id }).delete();
     if (!deleted) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

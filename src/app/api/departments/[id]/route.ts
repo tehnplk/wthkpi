@@ -9,7 +9,7 @@ export async function GET(
     const { id } = await params;
     const department = await db("department").where({ id }).first();
     if (!department) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     return NextResponse.json(department);
   } catch (error: unknown) {
@@ -27,16 +27,16 @@ export async function PUT(
     const body = await request.json();
     const updated = await db("department").where({ id }).update({ name: body.name });
     if (!updated) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     const department = await db("department").where({ id }).first();
     return NextResponse.json(department);
   } catch (error: unknown) {
     const err = error as { code?: string; message?: string };
     if (err.code === "ER_DUP_ENTRY") {
-      return NextResponse.json({ error: "Department name already exists" }, { status: 409 });
+      return NextResponse.json({ error: "ชื่อแผนกนี้มีอยู่แล้ว" }, { status: 409 });
     }
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ" }, { status: 500 });
   }
 }
 
@@ -48,7 +48,7 @@ export async function DELETE(
     const { id } = await params;
     const deleted = await db("department").where({ id }).delete();
     if (!deleted) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

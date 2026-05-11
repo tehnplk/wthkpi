@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const err = error as { code?: string; message?: string };
     if (err.code === "ER_DUP_ENTRY") {
-      return NextResponse.json({ error: "Department name already exists" }, { status: 409 });
+      return NextResponse.json({ error: "ชื่อแผนกนี้มีอยู่แล้ว" }, { status: 409 });
     }
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ" }, { status: 500 });
   }
 }

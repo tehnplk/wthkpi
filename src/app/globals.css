@@ -79,6 +79,25 @@ button:disabled {
   backdrop-filter: blur(16px);
 }
 
+.brand-mark,
+.icon-badge {
+  align-items: center;
+  background: #e8f7ef;
+  border: 1px solid #cfeade;
+  border-radius: 0.5rem;
+  color: var(--accent-strong);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 2.35rem;
+  justify-content: center;
+  width: 2.35rem;
+}
+
+.icon-badge {
+  height: 2.1rem;
+  width: 2.1rem;
+}
+
 .nav-link {
   border-radius: 0.625rem;
   color: #56665f;
@@ -89,6 +108,12 @@ button:disabled {
   background: #edf7f3;
   color: #0b5f4d;
   transform: translateX(2px);
+}
+
+.nav-link svg,
+.btn svg,
+.pill svg {
+  flex: 0 0 auto;
 }
 
 .content-wrap {
@@ -141,6 +166,13 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: 0.5rem;
   padding: 1rem;
+}
+
+.metric-head {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
 }
 
 .metric-label {
@@ -268,8 +300,10 @@ button:disabled {
 }
 
 .pill {
+  align-items: center;
   border-radius: 999px;
   display: inline-flex;
+  gap: 0.28rem;
   font-size: 0.75rem;
   font-weight: 750;
   line-height: 1;
@@ -312,6 +346,10 @@ button:disabled {
 }
 
 @media (max-width: 760px) {
+  body {
+    min-width: 0;
+  }
+
   .app-shell {
     flex-direction: column;
   }
@@ -319,21 +357,170 @@ button:disabled {
   .sidebar {
     border-bottom: 1px solid var(--line);
     border-right: 0;
+    position: sticky;
+    top: 0;
     width: 100%;
+    z-index: 20;
+  }
+
+  .sidebar > div {
+    padding: 0.85rem 1rem 0.45rem;
   }
 
   .sidebar nav {
     flex-direction: row;
+    gap: 0.4rem;
     overflow-x: auto;
-    padding-bottom: 0.75rem;
+    padding: 0.35rem 0.75rem 0.75rem;
+    scrollbar-width: none;
+  }
+
+  .sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    background: #f7faf9;
+    flex: 0 0 auto;
+    min-height: 2.4rem;
+    padding: 0.62rem 0.8rem;
+    white-space: nowrap;
+  }
+
+  main {
+    padding: 1rem !important;
   }
 
   .page-heading {
     align-items: flex-start;
     flex-direction: column;
+    margin-bottom: 1rem;
   }
 
   .page-title {
     font-size: 1.85rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .metric-card {
+    padding: 0.9rem;
+  }
+
+  .metric-value {
+    font-size: 1.75rem;
+  }
+
+  .form-panel {
+    padding: 0.9rem;
+  }
+
+  .form-panel form,
+  .form-panel .grid {
+    max-width: none;
+  }
+
+  .form-panel .btn-primary,
+  form > .btn-primary {
+    width: 100%;
+  }
+
+  .filter-bar select {
+    max-width: none;
+    width: 100%;
+  }
+
+  .data-table-wrap {
+    background: transparent;
+    border: 0;
+    overflow: visible;
+  }
+
+  .data-table {
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+    min-width: 0;
+  }
+
+  .data-table thead {
+    display: none;
+  }
+
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table tr {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0;
+  }
+
+  .data-table td {
+    align-items: flex-start;
+    border-bottom: 1px solid #edf3f0;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    min-height: 2.55rem;
+    padding: 0.7rem 0.9rem;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .data-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .data-table td::before {
+    color: var(--muted);
+    content: attr(data-label);
+    flex: 0 0 7rem;
+    font-size: 0.74rem;
+    font-weight: 750;
+    text-align: left;
+  }
+
+  .data-table td .flex {
+    justify-content: flex-end;
+  }
+
+  .data-table td input,
+  .data-table td select {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .data-table .empty-row {
+    display: block;
+    padding: 0;
+  }
+
+  .data-table .empty-cell {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    display: block;
+    padding: 2rem 1rem !important;
+    text-align: center;
+  }
+
+  .data-table .empty-cell::before {
+    content: "";
+    display: none;
+  }
+
+  .max-w-\[220px\],
+  .max-w-xs,
+  .max-w-\[160px\],
+  .max-w-\[90px\] {
+    max-width: 100%;
   }
 }

@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  Pencil,
+  Plus,
+  Save,
+  Trash2,
+  UserPlus,
+  UsersRound,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface User {
@@ -69,7 +78,7 @@ export default function UsersPage() {
       fetchData();
     } else {
       const data = await res.json();
-      setError(data.error || "Failed to create");
+      setError(data.error || "สร้างข้อมูลไม่สำเร็จ");
     }
   };
 
@@ -91,12 +100,12 @@ export default function UsersPage() {
       fetchData();
     } else {
       const data = await res.json();
-      setError(data.error || "Failed to update");
+      setError(data.error || "อัปเดตข้อมูลไม่สำเร็จ");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Delete this user?")) return;
+    if (!confirm("ลบผู้ใช้นี้หรือไม่?")) return;
     const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
     if (res.ok) fetchData();
   };
@@ -111,16 +120,21 @@ export default function UsersPage() {
   };
 
   if (loading) {
-    return <div className="loading-state">Loading users...</div>;
+    return <div className="loading-state">กำลังโหลดผู้ใช้...</div>;
   }
 
   return (
     <div>
       <header className="page-heading">
         <div>
-          <p className="eyebrow">Access</p>
-          <h2 className="page-title">Users</h2>
-          <p className="page-subtitle">Maintain report users, department assignment, and active status.</p>
+          <p className="eyebrow">สิทธิ์การใช้งาน</p>
+          <div className="flex items-center gap-3">
+            <span className="icon-badge">
+              <UsersRound size={18} aria-hidden="true" />
+            </span>
+            <h2 className="page-title">ผู้ใช้</h2>
+          </div>
+          <p className="page-subtitle">จัดการผู้ใช้ แผนก และสถานะการใช้งานของระบบรายงาน</p>
         </div>
       </header>
 
@@ -129,19 +143,23 @@ export default function UsersPage() {
       )}
 
       <form onSubmit={handleCreate} className="form-panel mb-6 space-y-3">
-        <h3 className="section-title">Add User</h3>
+        <h3 className="section-title flex items-center gap-2">
+          <UserPlus size={17} aria-hidden="true" />
+          เพิ่มผู้ใช้
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="text" placeholder="Provider ID" value={providerId} onChange={(e) => setProviderId(e.target.value)} required />
-          <input type="text" placeholder="Full name" value={fullname} onChange={(e) => setFullname(e.target.value)} required />
+          <input type="text" placeholder="รหัส Provider" value={providerId} onChange={(e) => setProviderId(e.target.value)} required />
+          <input type="text" placeholder="ชื่อ-นามสกุล" value={fullname} onChange={(e) => setFullname(e.target.value)} required />
         </div>
         <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
-          <option value="">No department</option>
+          <option value="">ไม่มีแผนก</option>
           {departments.map((d) => (
             <option key={d.id} value={d.id}>{d.name}</option>
           ))}
         </select>
         <button type="submit" className="btn btn-primary">
-          Add User
+          <Plus size={16} aria-hidden="true" />
+          เพิ่มผู้ใช้
         </button>
       </form>
 
@@ -150,37 +168,37 @@ export default function UsersPage() {
           <thead>
             <tr>
               <th className="w-16">ID</th>
-              <th>Provider ID</th>
-              <th>Full Name</th>
-              <th>Department</th>
-              <th>Active</th>
-              <th>Last Login</th>
-              <th className="w-36">Actions</th>
+              <th>รหัส Provider</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>แผนก</th>
+              <th>สถานะ</th>
+              <th>เข้าสู่ระบบล่าสุด</th>
+              <th className="w-36">จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {users.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="empty-cell">No users yet</td>
+              <tr className="empty-row">
+                <td colSpan={7} className="empty-cell">ยังไม่มีผู้ใช้</td>
               </tr>
             ) : (
               users.map((u) => (
                 <tr key={u.id}>
-                  <td className="text-[#64746d]">{u.id}</td>
-                  <td className="font-semibold text-[#17211d]">
+                  <td data-label="ID" className="text-[#64746d]">{u.id}</td>
+                  <td data-label="รหัส Provider" className="font-semibold text-[#17211d]">
                     {editingId === u.id ? (
                       <input value={editProviderId} onChange={(e) => setEditProviderId(e.target.value)} className="max-w-[160px]" autoFocus />
                     ) : u.provider_id}
                   </td>
-                  <td className="font-semibold text-[#17211d]">
+                  <td data-label="ชื่อ-นามสกุล" className="font-semibold text-[#17211d]">
                     {editingId === u.id ? (
                       <input value={editFullname} onChange={(e) => setEditFullname(e.target.value)} className="max-w-[160px]" />
                     ) : u.fullname}
                   </td>
-                  <td>
+                  <td data-label="แผนก">
                     {editingId === u.id ? (
                       <select value={editDepartmentId} onChange={(e) => setEditDepartmentId(e.target.value)} className="max-w-[160px]">
-                        <option value="">None</option>
+                        <option value="">ไม่มี</option>
                         {departments.map((d) => (
                           <option key={d.id} value={d.id}>{d.name}</option>
                         ))}
@@ -189,29 +207,29 @@ export default function UsersPage() {
                       u.department_name || "-"
                     )}
                   </td>
-                  <td>
+                  <td data-label="สถานะ">
                     {editingId === u.id ? (
                       <select value={editIsActive ? "1" : "0"} onChange={(e) => setEditIsActive(e.target.value === "1")} className="max-w-[90px]">
-                        <option value="1">Active</option>
-                        <option value="0">Inactive</option>
+                        <option value="1">ใช้งาน</option>
+                        <option value="0">ปิดใช้งาน</option>
                       </select>
                     ) : (
                       <span className={`pill ${u.is_active ? "pill-pass" : "pill-muted"}`}>
-                        {u.is_active ? "Active" : "Inactive"}
+                        {u.is_active ? "ใช้งาน" : "ปิดใช้งาน"}
                       </span>
                     )}
                   </td>
-                  <td className="text-[#64746d] whitespace-nowrap">{u.last_login || "-"}</td>
-                  <td>
+                  <td data-label="เข้าสู่ระบบล่าสุด" className="text-[#64746d] whitespace-nowrap">{u.last_login || "-"}</td>
+                  <td data-label="จัดการ">
                     {editingId === u.id ? (
                       <div className="flex gap-2">
-                        <button onClick={() => handleUpdate(u.id)} className="btn btn-save min-h-8 px-3 py-1 text-xs">Save</button>
-                        <button onClick={() => { setEditingId(null); setError(""); }} className="btn btn-soft min-h-8 px-3 py-1 text-xs">Cancel</button>
+                        <button onClick={() => handleUpdate(u.id)} className="btn btn-save min-h-8 px-3 py-1 text-xs"><Save size={13} aria-hidden="true" />บันทึก</button>
+                        <button onClick={() => { setEditingId(null); setError(""); }} className="btn btn-soft min-h-8 px-3 py-1 text-xs"><X size={13} aria-hidden="true" />ยกเลิก</button>
                       </div>
                     ) : (
                       <div className="flex gap-2">
-                        <button onClick={() => startEdit(u)} className="btn btn-soft min-h-8 px-3 py-1 text-xs">Edit</button>
-                        <button onClick={() => handleDelete(u.id)} className="btn btn-danger min-h-8 px-3 py-1 text-xs">Delete</button>
+                        <button onClick={() => startEdit(u)} className="btn btn-soft min-h-8 px-3 py-1 text-xs"><Pencil size={13} aria-hidden="true" />แก้ไข</button>
+                        <button onClick={() => handleDelete(u.id)} className="btn btn-danger min-h-8 px-3 py-1 text-xs"><Trash2 size={13} aria-hidden="true" />ลบ</button>
                       </div>
                     )}
                   </td>
