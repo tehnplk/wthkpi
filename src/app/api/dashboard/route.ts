@@ -42,7 +42,7 @@ export async function GET() {
           pending_count: db.raw("CASE WHEN COALESCE(kpi_result.status, kpi_topic.status, 'pending') = 'pending' THEN 1 ELSE 0 END"),
         })
         .groupBy("kpi_type.id", "kpi_type.type")
-        .orderBy("kpi_type.id", "asc") as Promise<KpiTypeSummaryRow[]>,
+        .orderBy("kpi_type.id", "asc") as unknown as Promise<KpiTypeSummaryRow[]>,
       db("kpi_result")
         .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
         .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
