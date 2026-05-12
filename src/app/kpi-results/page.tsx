@@ -237,10 +237,6 @@ export default function KpiResultsPage() {
     }
   };
 
-  if (loading) {
-    return <div className="loading-state">กำลังโหลดผลงาน...</div>;
-  }
-
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
     setSortBy(next.sortBy);
@@ -258,6 +254,10 @@ export default function KpiResultsPage() {
       <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
     </span>
   );
+
+  if (loading) {
+    return <div className="loading-state">กำลังโหลดผลงาน...</div>;
+  }
 
   const topicName = topics.find((t) => t.id === Number(kpiId))?.name || "";
 

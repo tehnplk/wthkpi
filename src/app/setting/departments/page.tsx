@@ -117,10 +117,6 @@ export default function DepartmentsPage() {
     }
   };
 
-  if (loading) {
-    return <div className="loading-state">กำลังโหลดแผนก...</div>;
-  }
-
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
     setSortBy(next.sortBy);
@@ -138,6 +134,10 @@ export default function DepartmentsPage() {
       <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
     </span>
   );
+
+  if (loading) {
+    return <div className="loading-state">กำลังโหลดแผนก...</div>;
+  }
 
   return (
     <div>

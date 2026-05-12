@@ -104,14 +104,6 @@ export default function DashboardPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <div className="loading-state">กำลังโหลดแดชบอร์ด...</div>;
-  }
-
-  if (!data) {
-    return <div className="alert">โหลดข้อมูลแดชบอร์ดไม่สำเร็จ</div>;
-  }
-
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
     setSortBy(next.sortBy);
@@ -119,8 +111,8 @@ export default function DashboardPage() {
   };
 
   const sortedRecent = useMemo(
-    () => applySort(data.recentResults, sortBy, sortDir),
-    [data.recentResults, sortBy, sortDir]
+    () => applySort(data?.recentResults ?? [], sortBy, sortDir),
+    [data?.recentResults, sortBy, sortDir]
   );
 
   const SortField = ({ field }: { field: string }) => (
@@ -129,6 +121,14 @@ export default function DashboardPage() {
       <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
     </span>
   );
+
+  if (loading) {
+    return <div className="loading-state">กำลังโหลดแดชบอร์ด...</div>;
+  }
+
+  if (!data) {
+    return <div className="alert">โหลดข้อมูลแดชบอร์ดไม่สำเร็จ</div>;
+  }
 
   return (
     <div>

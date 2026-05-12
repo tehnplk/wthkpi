@@ -156,10 +156,6 @@ export default function UsersPage() {
     }
   };
 
-  if (loading) {
-    return <div className="loading-state">กำลังโหลดผู้ใช้...</div>;
-  }
-
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
     setSortBy(next.sortBy);
@@ -177,6 +173,10 @@ export default function UsersPage() {
       <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
     </span>
   );
+
+  if (loading) {
+    return <div className="loading-state">กำลังโหลดผู้ใช้...</div>;
+  }
 
   return (
     <div>

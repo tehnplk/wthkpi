@@ -125,10 +125,6 @@ export default function KpiTypePage() {
     }
   };
 
-  if (loading) {
-    return <div className="loading-state">กำลังโหลดประเภทตัวชี้วัด...</div>;
-  }
-
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
     setSortBy(next.sortBy);
@@ -148,6 +144,10 @@ export default function KpiTypePage() {
   );
 
   const isEditing = editingId !== null;
+
+  if (loading) {
+    return <div className="loading-state">กำลังโหลดประเภทตัวชี้วัด...</div>;
+  }
 
   return (
     <div>
