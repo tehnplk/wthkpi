@@ -14,10 +14,13 @@ export async function GET(
     const { id } = await params;
     const result = await db("kpi_result")
       .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
+      .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
       .select(
         "kpi_result.*",
         db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
-        "kpi_topic.name as kpi_name"
+        "kpi_topic.name as kpi_name",
+        "kpi_topic.kpi_type_id",
+        "kpi_type.type as kpi_type"
       )
       .where("kpi_result.id", id)
       .first();
@@ -56,10 +59,13 @@ export async function PUT(
     }
     const result = await db("kpi_result")
       .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
+      .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
       .select(
         "kpi_result.*",
         db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
-        "kpi_topic.name as kpi_name"
+        "kpi_topic.name as kpi_name",
+        "kpi_topic.kpi_type_id",
+        "kpi_type.type as kpi_type"
       )
       .where("kpi_result.id", id)
       .first();

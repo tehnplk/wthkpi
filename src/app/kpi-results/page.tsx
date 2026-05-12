@@ -18,12 +18,21 @@ import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 interface Topic {
   id: number;
   name: string;
+  kpi_type_id: number | null;
+  kpi_type: string | null;
+}
+
+interface KpiType {
+  id: number;
+  type: string;
 }
 
 interface Result {
   id: number | null;
   kpi_id: number;
   kpi_name: string;
+  kpi_type_id: number | null;
+  kpi_type: string | null;
   kpi_number: string | null;
   topic_note: string | null;
   target: number | null;
@@ -52,6 +61,12 @@ const statusIcons = {
   pending: Clock3,
 };
 
+const kpiTypeBadgeClass = (type: string | null) => {
+  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
+  if (type === "คุณภาพ") return "pill-kpi-type-quality";
+  return "pill-kpi-type";
+};
+
 function toDateInput(value: string | null) {
   return value ? value.slice(0, 10) : "";
 }
@@ -77,6 +92,7 @@ function formatThaiShortDate(value: string | null) {
 export default function KpiResultsPage() {
   const [results, setResults] = useState<Result[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [error, setError] = useState("");
@@ -90,18 +106,21 @@ export default function KpiResultsPage() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
 
   const loadResults = () => {
     const params = new URLSearchParams();
+    if (filterKpiTypeId) params.set("kpi_type_id", filterKpiTypeId);
     if (filterStatus) params.set("status", filterStatus);
     if (filterTopic.trim()) params.set("topic", filterTopic.trim());
     fetch(`/api/kpi-results?${params}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setResults(data);
-      });
+      })
+      .catch(() => setResults([]));
   };
 
   useEffect(() => {
@@ -117,6 +136,11 @@ export default function KpiResultsPage() {
       .then((data) => {
         if (Array.isArray(data)) setTopics(data);
       });
+    fetch("/api/kpi-types")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setKpiTypes(data);
+      });
     fetch("/api/auth/me")
       .then((res) => {
         setCanManage(res.ok);
@@ -127,7 +151,7 @@ export default function KpiResultsPage() {
   useEffect(() => {
     if (!loading) loadResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus, filterTopic]);
+  }, [filterKpiTypeId, filterStatus, filterTopic]);
 
   const resetForm = () => {
     setKpiId("");
@@ -291,6 +315,12 @@ export default function KpiResultsPage() {
             placeholder="พิมพ์ชื่อหัวข้อ KPI..."
           />
         </label>
+        <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)} className="max-w-[160px]">
+          <option value="">ทุกประเภท</option>
+          {kpiTypes.map((type) => (
+            <option key={type.id} value={type.id}>{type.type}</option>
+          ))}
+        </select>
         <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)} className="max-w-[140px]">
           <option value="">ทุกสถานะ</option>
           <option value="pass">ผ่าน</option>
@@ -328,6 +358,9 @@ export default function KpiResultsPage() {
                     <td data-label="#" className="result-number-cell text-[#64746d] w-12">{result.kpi_number || "-"}</td>
                     <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                       {result.kpi_name}
+                      <div className="mt-1">
+                        <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(result.kpi_type)}`}>{result.kpi_type || "-"}</span>
+                      </div>
                       {result.topic_note && (
                         <div className="result-topic-note text-xs font-normal text-gray-500 mt-0.5">{result.topic_note}</div>
                       )}

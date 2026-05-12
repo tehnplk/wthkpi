@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const kpiId = searchParams.get("kpi_id");
+    const kpiTypeId = searchParams.get("kpi_type_id");
     const status = searchParams.get("status");
     const topic = searchParams.get("topic")?.trim();
     const from = searchParams.get("from");
@@ -17,18 +18,27 @@ export async function GET(request: NextRequest) {
 
     let query = db("kpi_topic")
       .leftJoin("kpi_result", "kpi_topic.id", "kpi_result.kpi_id")
+      .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
       .select(
-        "kpi_result.*",
+        "kpi_result.id",
+        "kpi_result.target",
+        "kpi_result.result",
+        "kpi_result.percent",
+        db.raw("COALESCE(kpi_result.status, kpi_topic.status, 'pending') as status"),
+        "kpi_result.note",
         db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
         "kpi_topic.id as kpi_id",
         "kpi_topic.name as kpi_name",
+        "kpi_topic.kpi_type_id",
+        "kpi_type.type as kpi_type",
         "kpi_topic.kpi_number",
         "kpi_topic.note as topic_note"
       );
 
     if (kpiId) query = query.where("kpi_topic.id", kpiId);
+    if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
     if (topic) query = query.where("kpi_topic.name", "like", `%${topic}%`);
-    if (status) query = query.where("kpi_result.status", status);
+    if (status) query = query.whereRaw("COALESCE(kpi_result.status, kpi_topic.status, 'pending') = ?", [status]);
     if (from) query = query.where("kpi_result.report_date", ">=", from);
     if (to) query = query.where("kpi_result.report_date", "<=", to);
 
@@ -58,10 +68,13 @@ export async function POST(request: NextRequest) {
     const [id] = await db("kpi_result").insert(insertData);
     const result = await db("kpi_result")
       .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
+      .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
       .select(
         "kpi_result.*",
         db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
         "kpi_topic.name as kpi_name",
+        "kpi_topic.kpi_type_id",
+        "kpi_type.type as kpi_type",
         "kpi_topic.kpi_number",
         "kpi_topic.note as topic_note"
       )

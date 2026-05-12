@@ -1,6 +1,6 @@
 "use client";
 
-import { MinusCircle, Pencil, Plus, Save, Target, Trash2 } from "lucide-react";
+import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
@@ -8,15 +8,24 @@ import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 interface TopicDepartment {
   id: number;
   name: string;
+  user_id: number | null;
   user_owner: string | null;
 }
 
 interface Topic {
   id: number;
   name: string;
+  kpi_type_id: number | null;
+  kpi_type: string | null;
+  status: string;
   kpi_number: string | null;
   note: string | null;
   departments: TopicDepartment[];
+}
+
+interface KpiType {
+  id: number;
+  type: string;
 }
 
 interface Department {
@@ -28,30 +37,42 @@ interface User {
   id: number;
   fullname: string;
   username: string;
+  department_id: number | null;
   department_name: string | null;
 }
 
 interface Assignment {
   deptId: number;
-  userOwner: string;
+  userId: number;
 }
 
-const emptyAssignment = (): Assignment => ({ deptId: 0, userOwner: "" });
+const emptyAssignment = (): Assignment => ({ deptId: 0, userId: 0 });
+
+const kpiTypeBadgeClass = (type: string | null) => {
+  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
+  if (type === "คุณภาพ") return "pill-kpi-type-quality";
+  return "pill-kpi-type";
+};
 
 export default function KpiTopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
+  const [kpiTypeId, setKpiTypeId] = useState("");
   const [kpiNumber, setKpiNumber] = useState("");
   const [note, setNote] = useState("");
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
+  const [editKpiTypeId, setEditKpiTypeId] = useState("");
   const [editKpiNumber, setEditKpiNumber] = useState("");
   const [editNote, setEditNote] = useState("");
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState("");
+  const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
+  const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
+  const [filterTopic, setFilterTopic] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
@@ -71,6 +92,10 @@ export default function KpiTopicsPage() {
       .then((res) => res.json())
       .then((data) => { if (Array.isArray(data)) setDepartments(data); })
       .catch(() => {});
+    fetch("/api/kpi-types")
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data)) setKpiTypes(data); })
+      .catch(() => {});
     fetch("/api/users")
       .then((res) => res.json())
       .then((data) => { if (Array.isArray(data)) setUsers(data); })
@@ -81,6 +106,7 @@ export default function KpiTopicsPage() {
     setIsFormOpen(false);
     setEditingId(null);
     setEditName("");
+    setEditKpiTypeId("");
     setEditKpiNumber("");
     setEditNote("");
     setEditAssignments([emptyAssignment()]);
@@ -89,6 +115,7 @@ export default function KpiTopicsPage() {
   const openCreate = () => {
     setEditingId(null);
     setName("");
+    setKpiTypeId("");
     setKpiNumber("");
     setNote("");
     setAssignments([emptyAssignment()]);
@@ -99,12 +126,13 @@ export default function KpiTopicsPage() {
   const startEdit = (topic: Topic) => {
     setEditingId(topic.id);
     setEditName(topic.name);
+    setEditKpiTypeId(topic.kpi_type_id ? String(topic.kpi_type_id) : "");
     setEditKpiNumber(topic.kpi_number || "");
     setEditNote(topic.note || "");
     const depts = topic.departments || [];
     setEditAssignments(
       depts.length > 0
-        ? depts.map((d) => ({ deptId: d.id, userOwner: d.user_owner || "" }))
+        ? depts.map((d) => ({ deptId: d.id, userId: d.user_id || 0 }))
         : [emptyAssignment()]
     );
     setError("");
@@ -123,11 +151,13 @@ export default function KpiTopicsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.trim(),
+        kpi_type_id: kpiTypeId ? Number(kpiTypeId) : null,
+        status: "pending",
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
-          user_owner: a.userOwner || null,
+          user_id: a.userId || null,
         })),
       }),
     });
@@ -156,11 +186,12 @@ export default function KpiTopicsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: editName.trim(),
+        kpi_type_id: editKpiTypeId ? Number(editKpiTypeId) : null,
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
-          user_owner: a.userOwner || null,
+          user_id: a.userId || null,
         })),
       }),
     });
@@ -195,29 +226,32 @@ export default function KpiTopicsPage() {
   };
 
   const isEditing = editingId !== null;
+  const displayedTopics = topics.filter((topic) => {
+    const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
+    const matchesTopic = !filterTopic.trim() || topic.name.toLowerCase().includes(filterTopic.trim().toLowerCase());
+    return matchesType && matchesTopic;
+  });
 
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
 
   const usersByDept = (deptId: number) => {
     if (!deptId) return [];
-    const deptName = departments.find((d) => d.id === deptId)?.name;
-    if (!deptName) return [];
-    return users.filter((u) => u.department_name === deptName);
+    return users.filter((u) => u.department_id === deptId);
   };
 
   const handleRowDept = (idx: number, deptId: number) => {
     setAssignmentsFn((prev) => {
       const next = [...prev];
-      next[idx] = { deptId, userOwner: "" };
+      next[idx] = { deptId, userId: 0 };
       return next;
     });
   };
 
-  const handleRowUser = (idx: number, userOwner: string) => {
+  const handleRowUser = (idx: number, userId: number) => {
     setAssignmentsFn((prev) => {
       const next = [...prev];
-      next[idx] = { ...next[idx], userOwner };
+      next[idx] = { ...next[idx], userId };
       return next;
     });
   };
@@ -249,6 +283,26 @@ export default function KpiTopicsPage() {
       </header>
 
       {error && <div className="alert">{error}</div>}
+
+      <div className="filter-bar topic-filter-bar">
+        <div className="filter-icon hidden sm:flex items-center text-[#64746d]">
+          <Search size={18} aria-hidden="true" />
+        </div>
+        <label className="filter-search">
+          <input
+            type="search"
+            value={filterTopic}
+            onChange={(event) => setFilterTopic(event.target.value)}
+            placeholder="พิมพ์ชื่อตัวชี้วัด..."
+          />
+        </label>
+        <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)} className="max-w-[160px]">
+          <option value="">ทุกประเภท</option>
+          {kpiTypes.map((type) => (
+            <option key={type.id} value={type.id}>{type.type}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="table-toolbar">
         <button type="button" className="btn btn-primary" onClick={openCreate}>
@@ -288,6 +342,20 @@ export default function KpiTopicsPage() {
           </div>
 
           <div className="form-group">
+            <label htmlFor="topic-type">ประเภทตัวชี้วัด</label>
+            <select
+              id="topic-type"
+              value={isEditing ? editKpiTypeId : kpiTypeId}
+              onChange={(event) => isEditing ? setEditKpiTypeId(event.target.value) : setKpiTypeId(event.target.value)}
+            >
+              <option value="">เลือกประเภทตัวชี้วัด</option>
+              {kpiTypes.map((type) => (
+                <option key={type.id} value={type.id}>{type.type}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
             <label htmlFor="topic-note">หมายเหตุ</label>
             <textarea
               id="topic-note"
@@ -311,12 +379,12 @@ export default function KpiTopicsPage() {
                   ))}
                 </select>
                 <select
-                  value={row.userOwner}
-                  onChange={(event) => handleRowUser(idx, event.target.value)}
+                  value={row.userId || ""}
+                  onChange={(event) => handleRowUser(idx, Number(event.target.value))}
                 >
                   <option value="">ผู้รับผิดชอบ</option>
                   {usersByDept(row.deptId).map((user) => (
-                    <option key={user.id} value={user.fullname}>{user.fullname}</option>
+                    <option key={user.id} value={user.id}>{user.fullname}</option>
                   ))}
                 </select>
                 {currentAssignments.length > 1 && (
@@ -357,16 +425,19 @@ export default function KpiTopicsPage() {
             </tr>
           </thead>
           <tbody>
-            {topics.length === 0 ? (
+            {displayedTopics.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={5} className="empty-cell">ยังไม่มีตัวชี้วัด</td>
               </tr>
             ) : (
-              topics.map((topic) => (
+              displayedTopics.map((topic) => (
                 <tr key={topic.id}>
                   <td data-label="#" className="text-[#64746d] w-12">{topic.kpi_number || "-"}</td>
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
                     {topic.name}
+                    <div className="mt-1">
+                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type)}`}>{topic.kpi_type || "-"}</span>
+                    </div>
                     {topic.note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>
                     )}

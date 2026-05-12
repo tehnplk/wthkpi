@@ -18,13 +18,25 @@ interface DashboardData {
   passCount: number;
   failCount: number;
   pendingCount: number;
+  kpiTypeSummary: KpiTypeSummary[];
   recentResults: ResultRow[];
+}
+
+interface KpiTypeSummary {
+  id: number;
+  type: string;
+  totalTopics: number;
+  totalResults: number;
+  passCount: number;
+  failCount: number;
+  pendingCount: number;
 }
 
 interface ResultRow {
   id: number;
   kpi_id: number;
   kpi_name: string;
+  kpi_type: string | null;
   target: number | null;
   result: number | null;
   percent: number | null;
@@ -49,6 +61,12 @@ const statusIcons = {
   pass: CircleCheck,
   fail: TriangleAlert,
   pending: Clock3,
+};
+
+const kpiTypeBadgeClass = (type: string | null) => {
+  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
+  if (type === "คุณภาพ") return "pill-kpi-type-quality";
+  return "pill-kpi-type";
 };
 
 function formatThaiShortDate(value: string | null) {
@@ -141,6 +159,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {data.kpiTypeSummary.map((summary) => (
+          <div key={summary.id} className="metric-card">
+            <div className="metric-head">
+              <p className="metric-label">{summary.type}</p>
+              <Target size={18} aria-hidden="true" />
+            </div>
+            <div className="flex items-end justify-between gap-3 mt-3">
+              <div>
+                <p className="metric-value">{summary.totalTopics}</p>
+                <p className="text-xs text-[#64746d] mt-1">หัวข้อ KPI</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-[#17211d]">{summary.totalResults} ผลรายงาน</p>
+                <p className="text-xs text-[#64746d] mt-1">
+                  ผ่าน {summary.passCount} / ไม่ผ่าน {summary.failCount} / รอ {summary.pendingCount}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="panel">
         <div className="panel-pad border-b border-[#dfe8e3]">
           <h3 className="section-title mb-0 flex items-center gap-2">
@@ -168,7 +209,12 @@ export default function DashboardPage() {
             ) : (
               data.recentResults.map((r) => (
                 <tr key={r.id}>
-                  <td data-label="KPI" className="font-semibold text-[#17211d]">{r.kpi_name}</td>
+                  <td data-label="KPI" className="font-semibold text-[#17211d]">
+                    {r.kpi_name}
+                    <div className="mt-1">
+                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type)}`}>{r.kpi_type || "-"}</span>
+                    </div>
+                  </td>
                   <td data-label="เป้าหมาย">{r.target ?? "-"}</td>
                   <td data-label="ผลลัพธ์">{r.result ?? "-"}</td>
                   <td data-label="%">{r.percent ? `${r.percent}%` : "-"}</td>
