@@ -3,7 +3,7 @@ import db from "@/lib/db";
 
 export async function GET() {
   try {
-    const departments = await db("department").select("*").orderBy("name");
+    const departments = await db("department").select("*").orderBy("id", "asc");
     return NextResponse.json(departments);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Unknown error";
