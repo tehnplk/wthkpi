@@ -21,6 +21,7 @@ export async function GET() {
           .join("department", "kpi_topic_department.department_id", "department.id")
           .leftJoin("users", "kpi_topic_department.user_id", "users.id")
           .whereIn("kpi_id", topicIds)
+          .orderBy("kpi_topic_department.department_id", "asc")
       : [];
 
     const deptByTopic: Record<number, { id: number; name: string; user_id: number | null; user_owner: string | null }[]> = {};

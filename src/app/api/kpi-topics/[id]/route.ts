@@ -25,7 +25,8 @@ export async function GET(
       )
       .join("department", "kpi_topic_department.department_id", "department.id")
       .leftJoin("users", "kpi_topic_department.user_id", "users.id")
-      .where("kpi_id", id);
+      .where("kpi_id", id)
+      .orderBy("kpi_topic_department.department_id", "asc");
 
     return NextResponse.json({
       ...topic,
