@@ -23,6 +23,7 @@ export async function GET() {
         .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
         .select(
           "kpi_result.*",
+          db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
           "kpi_topic.name as kpi_name"
         )
         .orderBy("kpi_result.created_at", "desc")

@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
+import { hashPassword } from "@/lib/password";
+
+const USER_SELECT = [
+  "users.id",
+  "users.provider_id",
+  "users.fullname",
+  "users.username",
+  "users.department_id",
+  "users.is_active",
+  "users.last_login",
+  "department.name as department_name",
+];
 
 export async function GET(
   _request: NextRequest,
@@ -9,7 +21,7 @@ export async function GET(
     const { id } = await params;
     const user = await db("users")
       .leftJoin("department", "users.department_id", "department.id")
-      .select("users.*", "department.name as department_name")
+      .select(USER_SELECT)
       .where("users.id", id)
       .first();
     if (!user) {
@@ -32,8 +44,13 @@ export async function PUT(
     const updateData: Record<string, unknown> = {};
     if (body.provider_id !== undefined) updateData.provider_id = body.provider_id;
     if (body.fullname !== undefined) updateData.fullname = body.fullname;
+    if (body.username !== undefined) updateData.username = body.username;
     if (body.department_id !== undefined) updateData.department_id = body.department_id;
     if (body.is_active !== undefined) updateData.is_active = body.is_active;
+
+    if (body.password) {
+      updateData.password_hash = await hashPassword(body.password);
+    }
 
     const updated = await db("users").where({ id }).update(updateData);
     if (!updated) {
@@ -41,7 +58,7 @@ export async function PUT(
     }
     const user = await db("users")
       .leftJoin("department", "users.department_id", "department.id")
-      .select("users.*", "department.name as department_name")
+      .select(USER_SELECT)
       .where("users.id", id)
       .first();
     return NextResponse.json(user);

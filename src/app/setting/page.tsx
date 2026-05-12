@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function DepartmentsRedirect() {
+export default function SettingRedirect() {
   redirect("/setting/departments");
 }

@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
+import { getSession } from "@/lib/auth";
+
+function unauthorized() {
+  return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
+}
 
 export async function GET(
   _request: NextRequest,
@@ -9,7 +14,11 @@ export async function GET(
     const { id } = await params;
     const result = await db("kpi_result")
       .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
-      .select("kpi_result.*", "kpi_topic.name as kpi_name")
+      .select(
+        "kpi_result.*",
+        db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
+        "kpi_topic.name as kpi_name"
+      )
       .where("kpi_result.id", id)
       .first();
     if (!result) {
@@ -27,6 +36,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) return unauthorized();
+
     const { id } = await params;
     const body = await request.json();
     const updateData: Record<string, unknown> = {
@@ -44,7 +56,11 @@ export async function PUT(
     }
     const result = await db("kpi_result")
       .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
-      .select("kpi_result.*", "kpi_topic.name as kpi_name")
+      .select(
+        "kpi_result.*",
+        db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
+        "kpi_topic.name as kpi_name"
+      )
       .where("kpi_result.id", id)
       .first();
     return NextResponse.json(result);
@@ -59,6 +75,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) return unauthorized();
+
     const { id } = await params;
     const deleted = await db("kpi_result").where({ id }).delete();
     if (!deleted) {

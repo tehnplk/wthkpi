@@ -51,6 +51,24 @@ const statusIcons = {
   pending: Clock3,
 };
 
+function formatThaiShortDate(value: string | null) {
+  if (!value) return "-";
+
+  const [yearText, monthText, dayText] = value.slice(0, 10).split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const date = new Date(year, month - 1, day);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "short",
+    year: "2-digit",
+  }).format(date);
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -163,7 +181,7 @@ export default function DashboardPage() {
                       {statusLabels[r.status] || r.status}
                     </span>
                   </td>
-                  <td data-label="วันที่" className="text-[#64746d]">{r.report_date || "-"}</td>
+                  <td data-label="วันที่" className="text-[#64746d]">{formatThaiShortDate(r.report_date)}</td>
                 </tr>
               ))
             )}
