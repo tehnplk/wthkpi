@@ -1,7 +1,7 @@
 # KPI Report System
 ## important issue
-  - on windows Always Convert terminal Console to UTF-8 before begin writing code.
-  - on linux use chcp 65001 to covert terminal to utf-8
+  - on windows Always Set Console Session to UTF-8 before begin writing code.
+  - on linux set to  chcp 65001
 
 ## Tech Stack
   - Nextjs last version
