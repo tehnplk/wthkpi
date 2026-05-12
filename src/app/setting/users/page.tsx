@@ -21,6 +21,23 @@ interface Department {
   name: string;
 }
 
+function formatThaiDateTime(value: string | null) {
+  if (!value) return "-";
+
+  const normalized = /[zZ]|[+-]\d{2}:\d{2}$/.test(value)
+    ? value
+    : value.replace(" ", "T") + "Z";
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("th-TH", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Bangkok",
+  }).format(date);
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -276,7 +293,7 @@ export default function UsersPage() {
                       {user.is_active ? "ใช้งาน" : "ปิดใช้งาน"}
                     </span>
                   </td>
-                  <td data-label="เข้าสู่ระบบล่าสุด" className="text-[#64746d] whitespace-nowrap">{user.last_login || "-"}</td>
+                  <td data-label="เข้าสู่ระบบล่าสุด" className="text-[#64746d] whitespace-nowrap">{formatThaiDateTime(user.last_login)}</td>
                   <td data-label="จัดการ">
                     <div className="flex gap-2">
                       <button
