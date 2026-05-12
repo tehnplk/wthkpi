@@ -249,13 +249,6 @@ export default function KpiTopicsPage() {
     return applySort(withLabels, sortBy, sortDir);
   }, [displayedTopics, sortBy, sortDir]);
 
-  const SortField = ({ field }: { field: string }) => (
-    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
-      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
-      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
-    </span>
-  );
-
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
 
@@ -446,10 +439,10 @@ export default function KpiTopicsPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#<SortField field="kpi_number" /></th>
-              <th className="sortable-th" onClick={() => handleSort("name")}>ตัวชี้วัด<SortField field="name" /></th>
-              <th className="sortable-th" onClick={() => handleSort("_deptLabel")}>หน่วยงานรับผิดชอบ<SortField field="_deptLabel" /></th>
-              <th className="sortable-th" onClick={() => handleSort("_ownerLabel")}>ผู้รับผิดชอบ<SortField field="_ownerLabel" /></th>
+              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#</th>
+              <th className="sortable-th" onClick={() => handleSort("name")}>ตัวชี้วัด</th>
+              <th className="sortable-th" onClick={() => handleSort("_deptLabel")}>หน่วยงานรับผิดชอบ</th>
+              <th className="sortable-th" onClick={() => handleSort("_ownerLabel")}>ผู้รับผิดชอบ</th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>

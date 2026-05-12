@@ -115,13 +115,6 @@ export default function DashboardPage() {
     [data?.recentResults, sortBy, sortDir]
   );
 
-  const SortField = ({ field }: { field: string }) => (
-    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
-      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
-      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
-    </span>
-  );
-
   if (loading) {
     return <div className="loading-state">กำลังโหลดแดชบอร์ด...</div>;
   }
@@ -212,12 +205,12 @@ export default function DashboardPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>KPI<SortField field="kpi_name" /></th>
-              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย<SortField field="target" /></th>
-              <th className="sortable-th" onClick={() => handleSort("result")}>ผลลัพธ์<SortField field="result" /></th>
-              <th className="sortable-th" onClick={() => handleSort("percent")}>%<SortField field="percent" /></th>
-              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ<SortField field="status" /></th>
-              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่<SortField field="report_date" /></th>
+              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>KPI</th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย</th>
+              <th className="sortable-th" onClick={() => handleSort("result")}>ผลลัพธ์</th>
+              <th className="sortable-th" onClick={() => handleSort("percent")}>%</th>
+              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
+              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่</th>
             </tr>
           </thead>
           <tbody>

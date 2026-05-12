@@ -128,13 +128,6 @@ export default function DepartmentsPage() {
     [departments, sortBy, sortDir]
   );
 
-  const SortField = ({ field }: { field: string }) => (
-    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
-      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
-      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
-    </span>
-  );
-
   if (loading) {
     return <div className="loading-state">กำลังโหลดแผนก...</div>;
   }
@@ -196,8 +189,8 @@ export default function DepartmentsPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID<SortField field="id" /></th>
-              <th className="sortable-th" onClick={() => handleSort("name")}>ชื่อ<SortField field="name" /></th>
+              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID</th>
+              <th className="sortable-th" onClick={() => handleSort("name")}>ชื่อ</th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>

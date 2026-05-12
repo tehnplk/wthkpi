@@ -136,13 +136,6 @@ export default function KpiTypePage() {
     [kpiTypes, sortBy, sortDir]
   );
 
-  const SortField = ({ field }: { field: string }) => (
-    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
-      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
-      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
-    </span>
-  );
-
   const isEditing = editingId !== null;
 
   if (loading) {
@@ -207,8 +200,8 @@ export default function KpiTypePage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID<SortField field="id" /></th>
-              <th className="sortable-th" onClick={() => handleSort("type")}>ประเภทตัวชี้วัด<SortField field="type" /></th>
+              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID</th>
+              <th className="sortable-th" onClick={() => handleSort("type")}>ประเภทตัวชี้วัด</th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>

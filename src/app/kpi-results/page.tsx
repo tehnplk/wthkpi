@@ -248,13 +248,6 @@ export default function KpiResultsPage() {
     [results, sortBy, sortDir]
   );
 
-  const SortField = ({ field }: { field: string }) => (
-    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
-      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
-      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
-    </span>
-  );
-
   if (loading) {
     return <div className="loading-state">กำลังโหลดผลงาน...</div>;
   }
@@ -353,13 +346,13 @@ export default function KpiResultsPage() {
         <table className="data-table kpi-results-table text-sm">
           <thead>
             <tr>
-              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#<SortField field="kpi_number" /></th>
-              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>ตัวชี้วัด<SortField field="kpi_name" /></th>
-              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย<SortField field="target" /></th>
-              <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน<SortField field="result" /></th>
-              <th className="sortable-th" onClick={() => handleSort("percent")}>%<SortField field="percent" /></th>
-              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ<SortField field="status" /></th>
-              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่<SortField field="report_date" /></th>
+              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#</th>
+              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>ตัวชี้วัด</th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย</th>
+              <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
+              <th className="sortable-th" onClick={() => handleSort("percent")}>%</th>
+              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
+              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่</th>
               {canManage && <th className="w-36">จัดการ</th>}
             </tr>
           </thead>
