@@ -529,6 +529,44 @@ button:disabled {
   padding: 0.85rem 1rem;
 }
 
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-th:hover {
+  color: #17211d;
+}
+
+.sort-icon {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.sort-icon .sort-icon-up,
+.sort-icon .sort-icon-down {
+  display: block;
+  height: 7px;
+  color: #8b9a94;
+}
+
+.sort-icon .sort-icon-up {
+  margin-bottom: -2px;
+}
+
+.sort-icon .sort-icon-down {
+  margin-top: -2px;
+}
+
+.sort-icon.active .sort-icon-up[data-active="true"],
+.sort-icon.active .sort-icon-down[data-active="true"] {
+  color: #17211d;
+}
+
 .data-table td {
   border-bottom: 1px solid #edf3f0;
   color: #31413b;

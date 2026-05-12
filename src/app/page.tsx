@@ -10,7 +10,8 @@ import {
   Target,
   TriangleAlert,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface DashboardData {
   totalTopics: number;
@@ -90,6 +91,8 @@ function formatThaiShortDate(value: string | null) {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -108,6 +111,24 @@ export default function DashboardPage() {
   if (!data) {
     return <div className="alert">โหลดข้อมูลแดชบอร์ดไม่สำเร็จ</div>;
   }
+
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedRecent = useMemo(
+    () => applySort(data.recentResults, sortBy, sortDir),
+    [data.recentResults, sortBy, sortDir]
+  );
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
 
   return (
     <div>
@@ -191,21 +212,21 @@ export default function DashboardPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th>KPI</th>
-              <th>เป้าหมาย</th>
-              <th>ผลลัพธ์</th>
-              <th>%</th>
-              <th>สถานะ</th>
-              <th>วันที่</th>
+              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>KPI<SortField field="kpi_name" /></th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย<SortField field="target" /></th>
+              <th className="sortable-th" onClick={() => handleSort("result")}>ผลลัพธ์<SortField field="result" /></th>
+              <th className="sortable-th" onClick={() => handleSort("percent")}>%<SortField field="percent" /></th>
+              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ<SortField field="status" /></th>
+              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่<SortField field="report_date" /></th>
             </tr>
           </thead>
           <tbody>
-            {data.recentResults.length === 0 ? (
+            {sortedRecent.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={6} className="empty-cell">ยังไม่มีผลรายงาน</td>
               </tr>
             ) : (
-              data.recentResults.map((r) => (
+              sortedRecent.map((r) => (
                 <tr key={r.id}>
                   <td data-label="KPI" className="font-semibold text-[#17211d]">
                     {r.kpi_name}

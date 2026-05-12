@@ -1,9 +1,10 @@
 "use client";
 
 import { Building2, Pencil, Plus, Save, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface Department {
   id: number;
@@ -18,6 +19,8 @@ export default function DepartmentsPage() {
   const [editName, setEditName] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState("");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   const fetchDepartments = () => {
     fetch("/api/departments")
@@ -118,6 +121,24 @@ export default function DepartmentsPage() {
     return <div className="loading-state">กำลังโหลดแผนก...</div>;
   }
 
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedDepartments = useMemo(
+    () => applySort(departments, sortBy, sortDir),
+    [departments, sortBy, sortDir]
+  );
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
+
   return (
     <div>
       <header className="page-heading">
@@ -175,18 +196,18 @@ export default function DepartmentsPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-20">ID</th>
-              <th>ชื่อ</th>
+              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID<SortField field="id" /></th>
+              <th className="sortable-th" onClick={() => handleSort("name")}>ชื่อ<SortField field="name" /></th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {departments.length === 0 ? (
+            {sortedDepartments.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={3} className="empty-cell">ยังไม่มีแผนก</td>
               </tr>
             ) : (
-              departments.map((department) => (
+              sortedDepartments.map((department) => (
                 <tr key={department.id}>
                   <td data-label="ID" className="text-[#64746d]">{department.id}</td>
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">{department.name}</td>

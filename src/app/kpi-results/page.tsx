@@ -11,9 +11,10 @@ import {
   Trash2,
   TriangleAlert,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface Topic {
   id: number;
@@ -109,6 +110,8 @@ export default function KpiResultsPage() {
   const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   const loadResults = () => {
     const params = new URLSearchParams();
@@ -239,6 +242,24 @@ export default function KpiResultsPage() {
     return <div className="loading-state">กำลังโหลดผลงาน...</div>;
   }
 
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedResults = useMemo(
+    () => applySort(results, sortBy, sortDir),
+    [results, sortBy, sortDir]
+  );
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
+
   const topicName = topics.find((t) => t.id === Number(kpiId))?.name || "";
 
   return (
@@ -333,23 +354,23 @@ export default function KpiResultsPage() {
         <table className="data-table kpi-results-table text-sm">
           <thead>
             <tr>
-              <th className="w-12">#</th>
-              <th>ตัวชี้วัด</th>
-              <th>เป้าหมาย</th>
-              <th>ผลงาน</th>
-              <th>%</th>
-              <th>สถานะ</th>
-              <th>วันที่</th>
+              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#<SortField field="kpi_number" /></th>
+              <th className="sortable-th" onClick={() => handleSort("kpi_name")}>ตัวชี้วัด<SortField field="kpi_name" /></th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย<SortField field="target" /></th>
+              <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน<SortField field="result" /></th>
+              <th className="sortable-th" onClick={() => handleSort("percent")}>%<SortField field="percent" /></th>
+              <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ<SortField field="status" /></th>
+              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่<SortField field="report_date" /></th>
               {canManage && <th className="w-36">จัดการ</th>}
             </tr>
           </thead>
           <tbody>
-            {results.length === 0 ? (
+            {sortedResults.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={canManage ? 8 : 7} className="empty-cell">ไม่พบผลงาน</td>
               </tr>
             ) : (
-              results.map((result) => {
+              sortedResults.map((result) => {
                 const resultStatus = result.status || "pending";
                 const StatusIcon = statusIcons[resultStatus as keyof typeof statusIcons] || Clock3;
 

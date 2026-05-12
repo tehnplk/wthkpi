@@ -1,9 +1,10 @@
 "use client";
 
 import { Pencil, Save, Trash2, UserPlus, UsersRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface User {
   id: number;
@@ -43,6 +44,8 @@ export default function UsersPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   const [providerId, setProviderId] = useState("");
   const [fullname, setFullname] = useState("");
@@ -157,6 +160,24 @@ export default function UsersPage() {
     return <div className="loading-state">กำลังโหลดผู้ใช้...</div>;
   }
 
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedUsers = useMemo(
+    () => applySort(users, sortBy, sortDir),
+    [users, sortBy, sortDir]
+  );
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
+
   return (
     <div>
       <header className="page-heading">
@@ -261,24 +282,24 @@ export default function UsersPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-16">ID</th>
-              <th>รหัส Provider</th>
-              <th>ชื่อผู้ใช้</th>
-              <th>ชื่อ-นามสกุล</th>
-              <th>แผนก</th>
+              <th className="w-16 sortable-th" onClick={() => handleSort("id")}>ID<SortField field="id" /></th>
+              <th className="sortable-th" onClick={() => handleSort("provider_id")}>รหัส Provider<SortField field="provider_id" /></th>
+              <th className="sortable-th" onClick={() => handleSort("username")}>ชื่อผู้ใช้<SortField field="username" /></th>
+              <th className="sortable-th" onClick={() => handleSort("fullname")}>ชื่อ-นามสกุล<SortField field="fullname" /></th>
+              <th className="sortable-th" onClick={() => handleSort("department_name")}>แผนก<SortField field="department_name" /></th>
               <th>รหัสผ่าน</th>
-              <th>สถานะ</th>
-              <th>เข้าสู่ระบบล่าสุด</th>
+              <th className="sortable-th" onClick={() => handleSort("is_active")}>สถานะ<SortField field="is_active" /></th>
+              <th className="sortable-th" onClick={() => handleSort("last_login")}>เข้าสู่ระบบล่าสุด<SortField field="last_login" /></th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
+            {sortedUsers.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={9} className="empty-cell">ยังไม่มีผู้ใช้</td>
               </tr>
             ) : (
-              users.map((user) => (
+              sortedUsers.map((user) => (
                 <tr key={user.id}>
                   <td data-label="ID" className="text-[#64746d]">{user.id}</td>
                   <td data-label="รหัส Provider" className="font-semibold text-[#17211d]">{user.provider_id}</td>

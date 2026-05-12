@@ -1,9 +1,10 @@
 "use client";
 
 import { Pencil, Plus, Save, Tags, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface KpiType {
   id: number;
@@ -24,6 +25,8 @@ export default function KpiTypePage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState("");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   const fetchKpiTypes = () => {
     fetch("/api/kpi-types")
@@ -127,6 +130,24 @@ export default function KpiTypePage() {
     return <div className="loading-state">กำลังโหลดประเภทตัวชี้วัด...</div>;
   }
 
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedKpiTypes = useMemo(
+    () => applySort(kpiTypes, sortBy, sortDir),
+    [kpiTypes, sortBy, sortDir]
+  );
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
+
   const isEditing = editingId !== null;
 
   return (
@@ -187,18 +208,18 @@ export default function KpiTypePage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-20">ID</th>
-              <th>ประเภทตัวชี้วัด</th>
+              <th className="w-20 sortable-th" onClick={() => handleSort("id")}>ID<SortField field="id" /></th>
+              <th className="sortable-th" onClick={() => handleSort("type")}>ประเภทตัวชี้วัด<SortField field="type" /></th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {kpiTypes.length === 0 ? (
+            {sortedKpiTypes.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={3} className="empty-cell">ยังไม่มีประเภทตัวชี้วัด</td>
               </tr>
             ) : (
-              kpiTypes.map((kpiType) => (
+              sortedKpiTypes.map((kpiType) => (
                 <tr key={kpiType.id}>
                   <td data-label="ID" className="text-[#64746d]">{kpiType.id}</td>
                   <td data-label="ประเภทตัวชี้วัด" className="font-semibold text-[#17211d]">

@@ -1,9 +1,10 @@
 "use client";
 
 import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 interface TopicDepartment {
   id: number;
@@ -75,6 +76,8 @@ export default function KpiTopicsPage() {
   const [filterTopic, setFilterTopic] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   const fetchData = () => {
     fetch("/api/kpi-topics")
@@ -231,6 +234,28 @@ export default function KpiTopicsPage() {
     const matchesTopic = !filterTopic.trim() || topic.name.toLowerCase().includes(filterTopic.trim().toLowerCase());
     return matchesType && matchesTopic;
   });
+
+  const handleSort = (col: string) => {
+    const next = toggleSort(sortDir, col, sortBy);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+  };
+
+  const sortedTopics = useMemo(() => {
+    const withLabels = displayedTopics.map((t) => ({
+      ...t,
+      _deptLabel: (t.departments || []).map((d) => d.name).join(", "),
+      _ownerLabel: (t.departments || []).map((d) => d.user_owner || "-").join(", "),
+    }));
+    return applySort(withLabels, sortBy, sortDir);
+  }, [displayedTopics, sortBy, sortDir]);
+
+  const SortField = ({ field }: { field: string }) => (
+    <span className={`sort-icon${sortBy === field ? " active" : ""}`}>
+      <span className="sort-icon-up" data-active={sortBy === field && sortDir === "asc" ? "true" : undefined}>&#9650;</span>
+      <span className="sort-icon-down" data-active={sortBy === field && sortDir === "desc" ? "true" : undefined}>&#9660;</span>
+    </span>
+  );
 
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
@@ -422,20 +447,20 @@ export default function KpiTopicsPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
-              <th className="w-12">#</th>
-              <th>ตัวชี้วัด</th>
-              <th>หน่วยงานรับผิดชอบ</th>
-              <th>ผู้รับผิดชอบ</th>
+              <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#<SortField field="kpi_number" /></th>
+              <th className="sortable-th" onClick={() => handleSort("name")}>ตัวชี้วัด<SortField field="name" /></th>
+              <th className="sortable-th" onClick={() => handleSort("_deptLabel")}>หน่วยงานรับผิดชอบ<SortField field="_deptLabel" /></th>
+              <th className="sortable-th" onClick={() => handleSort("_ownerLabel")}>ผู้รับผิดชอบ<SortField field="_ownerLabel" /></th>
               <th className="w-36">จัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {displayedTopics.length === 0 ? (
+            {sortedTopics.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={5} className="empty-cell">ยังไม่มีตัวชี้วัด</td>
               </tr>
             ) : (
-              displayedTopics.map((topic) => (
+              sortedTopics.map((topic) => (
                 <tr key={topic.id}>
                   <td data-label="#" className="text-[#64746d] w-12">{topic.kpi_number || "-"}</td>
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
