@@ -16,14 +16,14 @@ function isProtected(pathname: string): boolean {
 }
 
 function requireLogin(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
   }
 
   const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("redirect", pathname);
+  loginUrl.searchParams.set("redirect", `${pathname}${search}`);
   return NextResponse.redirect(loginUrl);
 }
 

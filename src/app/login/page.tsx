@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { BarChart3, LogIn } from "lucide-react";
 import { notifyError, notifySuccess } from "@/lib/notice";
 
@@ -14,9 +14,8 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
+  const redirect = normalizeRedirect(searchParams.get("redirect"));
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +44,7 @@ function LoginForm() {
       }
 
       notifySuccess("เข้าสู่ระบบสำเร็จ");
-      router.push(redirect);
+      window.location.assign(redirect);
     } catch {
       const message = "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์";
       setError(message);
@@ -102,4 +101,9 @@ function LoginForm() {
       </div>
     </div>
   );
+}
+
+function normalizeRedirect(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+  return value;
 }
