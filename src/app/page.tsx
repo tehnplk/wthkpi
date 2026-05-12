@@ -37,6 +37,7 @@ interface ResultRow {
   id: number;
   kpi_id: number;
   kpi_name: string;
+  kpi_type_id: number | null;
   kpi_type: string | null;
   target: number | null;
   result: number | null;
@@ -64,10 +65,9 @@ const statusIcons = {
   pending: Clock3,
 };
 
-const kpiTypeBadgeClass = (type: string | null) => {
-  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
-  if (type === "คุณภาพ") return "pill-kpi-type-quality";
-  return "pill-kpi-type";
+const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
+  if (kpiTypeId == null) return "pill-kpi-type";
+  return `pill-kpi-t${kpiTypeId % 6}`;
 };
 
 function formatThaiShortDate(value: string | null) {
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                   <td data-label="KPI" className="font-semibold text-[#17211d]">
                     {r.kpi_name}
                     <div className="mt-1">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type)}`}>{r.kpi_type || "-"}</span>
+                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
                     </div>
                   </td>
                   <td data-label="เป้าหมาย">{r.target ?? "-"}</td>

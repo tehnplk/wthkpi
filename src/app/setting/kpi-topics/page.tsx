@@ -49,10 +49,9 @@ interface Assignment {
 
 const emptyAssignment = (): Assignment => ({ deptId: 0, userId: 0 });
 
-const kpiTypeBadgeClass = (type: string | null) => {
-  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
-  if (type === "คุณภาพ") return "pill-kpi-type-quality";
-  return "pill-kpi-type";
+const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
+  if (kpiTypeId == null) return "pill-kpi-type";
+  return `pill-kpi-t${kpiTypeId % 6}`;
 };
 
 export default function KpiTopicsPage() {
@@ -466,7 +465,7 @@ export default function KpiTopicsPage() {
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
                     {topic.name}
                     <div className="mt-1">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type)}`}>{topic.kpi_type || "-"}</span>
+                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type_id)}`}>{topic.kpi_type || "-"}</span>
                     </div>
                     {topic.note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>

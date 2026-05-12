@@ -11,10 +11,9 @@ interface KpiType {
   type: string;
 }
 
-const kpiTypeBadgeClass = (type: string | null) => {
-  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
-  if (type === "คุณภาพ") return "pill-kpi-type-quality";
-  return "pill-kpi-type";
+const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
+  if (kpiTypeId == null) return "pill-kpi-type";
+  return `pill-kpi-t${kpiTypeId % 6}`;
 };
 
 export default function KpiTypePage() {
@@ -223,7 +222,7 @@ export default function KpiTypePage() {
                 <tr key={kpiType.id}>
                   <td data-label="ID" className="text-[#64746d]">{kpiType.id}</td>
                   <td data-label="ประเภทตัวชี้วัด" className="font-semibold text-[#17211d]">
-                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(kpiType.type)}`}>{kpiType.type}</span>
+                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(kpiType.id)}`}>{kpiType.type}</span>
                   </td>
                   <td data-label="จัดการ">
                     <div className="flex gap-2">

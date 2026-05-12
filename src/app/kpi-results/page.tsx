@@ -62,10 +62,9 @@ const statusIcons = {
   pending: Clock3,
 };
 
-const kpiTypeBadgeClass = (type: string | null) => {
-  if (type === "ยุทธศาสตร์") return "pill-kpi-type-strategy";
-  if (type === "คุณภาพ") return "pill-kpi-type-quality";
-  return "pill-kpi-type";
+const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
+  if (kpiTypeId == null) return "pill-kpi-type";
+  return `pill-kpi-t${kpiTypeId % 6}`;
 };
 
 function toDateInput(value: string | null) {
@@ -380,7 +379,7 @@ export default function KpiResultsPage() {
                     <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                       {result.kpi_name}
                       <div className="mt-1">
-                        <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(result.kpi_type)}`}>{result.kpi_type || "-"}</span>
+                        <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(result.kpi_type_id)}`}>{result.kpi_type || "-"}</span>
                       </div>
                       {result.topic_note && (
                         <div className="result-topic-note text-xs font-normal text-gray-500 mt-0.5">{result.topic_note}</div>
