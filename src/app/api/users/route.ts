@@ -16,7 +16,7 @@ export async function GET() {
         "users.last_login",
         "department.name as department_name"
       )
-      .orderBy("users.fullname");
+      .orderBy("users.id");
     return NextResponse.json(users);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Unknown error";
