@@ -235,9 +235,14 @@ export default function KpiTopicsPage() {
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
 
-  const usersByDept = (deptId: number) => {
-    if (!deptId) return [];
-    return users.filter((u) => u.department_id === deptId);
+  const usersByDept = (deptId: number, assignedUserId: number) => {
+    if (!deptId) return users;
+    const filtered = users.filter((u) => u.department_id === deptId || u.department_id === null);
+    if (assignedUserId && !filtered.some((u) => u.id === assignedUserId)) {
+      const assignedUser = users.find((u) => u.id === assignedUserId);
+      if (assignedUser) filtered.push(assignedUser);
+    }
+    return filtered;
   };
 
   const handleRowDept = (idx: number, deptId: number) => {
@@ -383,7 +388,7 @@ export default function KpiTopicsPage() {
                   onChange={(event) => handleRowUser(idx, Number(event.target.value))}
                 >
                   <option value="">ผู้รับผิดชอบ</option>
-                  {usersByDept(row.deptId).map((user) => (
+                  {usersByDept(row.deptId, row.userId).map((user) => (
                     <option key={user.id} value={user.id}>{user.fullname}</option>
                   ))}
                 </select>

@@ -113,14 +113,12 @@ export default function DashboardPage() {
     <div>
       <header className="page-heading">
         <div>
-          <p className="eyebrow">ภาพรวม</p>
           <div className="flex items-center gap-3">
             <span className="icon-badge">
               <LayoutDashboardIcon />
             </span>
-            <h2 className="page-title">แดชบอร์ด</h2>
+            <h2 className="page-title">ผลการดำเนินงานตามตัวชี้วัด โรงพยาบาลวังทอง</h2>
           </div>
-          <p className="page-subtitle">ติดตามความคืบหน้า KPI จำนวนผลรายงาน และกิจกรรมล่าสุด</p>
         </div>
       </header>
 
