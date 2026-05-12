@@ -382,6 +382,82 @@ button:disabled {
   padding: 1rem;
 }
 
+.metric-card-topics {
+  border-left: 0.35rem solid #46e4f0;
+}
+
+.metric-card-results {
+  border-left: 0.35rem solid #19e097;
+}
+
+.metric-card-status {
+  border-left: 0.35rem solid #fa3f32;
+}
+
+.metric-card-pending {
+  border-left: 0.35rem solid #eff545;
+}
+
+.metric-card-topics .metric-head svg,
+.metric-card-results .metric-head svg,
+.metric-card-status .metric-head svg,
+.metric-card-pending .metric-head svg {
+  border-radius: 999px;
+  box-sizing: content-box;
+  padding: 0.42rem;
+}
+
+.metric-card-topics .metric-head svg {
+  background: rgba(70, 228, 240, 0.2);
+  color: #087782;
+}
+
+.metric-card-results .metric-head svg {
+  background: rgba(25, 224, 151, 0.18);
+  color: #087b52;
+}
+
+.metric-card-status .metric-head svg {
+  background: rgba(250, 63, 50, 0.12);
+  color: #c62f25;
+}
+
+.metric-card-pending .metric-head svg {
+  background: rgba(239, 245, 69, 0.35);
+  color: #746f00;
+}
+
+.metric-card-type {
+  position: relative;
+}
+
+.metric-card-type::before {
+  border-radius: 999px;
+  content: "";
+  height: 0.32rem;
+  left: 1rem;
+  position: absolute;
+  right: 1rem;
+  top: 0.55rem;
+}
+
+.metric-card-type .metric-head {
+  margin-top: 0.25rem;
+}
+
+.metric-card-type-0 { border-color: #dfe8e3; }
+.metric-card-type-0::before { background: #19e097; }
+.metric-card-type-1 { border-color: #dfe8e3; }
+.metric-card-type-1::before { background: #46e4f0; }
+.metric-card-type-2 { border-color: #dfe8e3; }
+.metric-card-type-2::before { background: #eff545; }
+.metric-card-type-3 { border-color: #dfe8e3; }
+.metric-card-type-3::before { background: #fa3f32; }
+.metric-card-type-4 { border-color: #dfe8e3; }
+.metric-card-type-4::before { background: #644ca8; }
+.metric-card-type-5 { border-color: #dfe8e3; }
+.metric-card-type-5::before { background: #2979a0; }
+
 .metric-head {
   align-items: center;
   display: flex;
@@ -619,6 +695,89 @@ button:disabled {
   color: #61716a;
 }
 
+.number-badge {
+  align-items: center;
+  background: #46e4f0;
+  border: 1px solid #46e4f0;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(70, 228, 240, 0.18);
+  color: #083d43;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  justify-content: center;
+  line-height: 1;
+  min-width: 3.6rem;
+  padding: 0.42rem 0.78rem;
+}
+
+.number-badge-rate {
+  background: #dce8ff;
+  border-color: #75a3ff;
+  color: #19448f;
+}
+
+.kpi-number-badge {
+  background: #c0cecf;
+  border-color: #c0cecf;
+  color: #25383a;
+}
+
+.number-badge-rate-pass {
+  background: #19e097;
+  border-color: #19e097;
+  color: #fff;
+}
+
+.number-badge-rate-fail {
+  background: #fa3f32;
+  border-color: #fa3f32;
+  color: #fff;
+}
+
+.number-badge-rate-pending {
+  background: #eff545;
+  border-color: #eff545;
+  color: #4d3500;
+}
+
+.toggle-group {
+  display: inline-flex;
+  border: 1px solid #cfdad5;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  background: #f8faf9;
+  border: none;
+  border-right: 1px solid #cfdad5;
+  color: #61716a;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.45rem 0.85rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn:last-child {
+  border-right: none;
+}
+
+.toggle-btn:hover {
+  background: #eef3f0;
+}
+
+.toggle-active {
+  color: #fff;
+  font-weight: 600;
+}
+
+.toggle-active.toggle-pass { background: #19e097; }
+.toggle-active.toggle-fail { background: #fa3f32; }
+.toggle-active.toggle-pending { background: #eff545; color: #4d3500; }
+
 .pill-kpi-type {
   background: #eef3f0;
   border: 1px solid #cfdad5;
@@ -667,12 +826,12 @@ button:disabled {
 }
 
 .modal-backdrop {
-  align-items: center;
+  align-items: flex-start;
   background: rgba(23, 33, 29, 0.38);
   display: flex;
   inset: 0;
   justify-content: center;
-  padding: 1rem;
+  padding: 100px 1rem 1rem;
   position: fixed;
   z-index: 80;
 }
@@ -697,6 +856,10 @@ button:disabled {
 
 .modal-lg {
   max-width: 760px;
+}
+
+.modal-xl {
+  max-width: 80vw;
 }
 
 .modal-header {
@@ -738,7 +901,7 @@ button:disabled {
 .modal-actions {
   display: flex;
   gap: 0.65rem;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding-top: 0.25rem;
 }
 

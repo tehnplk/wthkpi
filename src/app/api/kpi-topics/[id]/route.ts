@@ -52,26 +52,31 @@ export async function PUT(
     const body = await request.json();
     const { assignments } = body;
 
-    const updated = await db("kpi_topic").where({ id }).update({
-      name: body.name,
-      kpi_type_id: body.kpi_type_id || null,
-      kpi_number: body.kpi_number || null,
-      note: body.note || null,
-    });
+    const updateData: Record<string, unknown> = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.kpi_type_id !== undefined) updateData.kpi_type_id = body.kpi_type_id || null;
+    if (body.kpi_number !== undefined) updateData.kpi_number = body.kpi_number || null;
+    if (body.note !== undefined) updateData.note = body.note || null;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.rate_cal_value !== undefined) updateData.rate_cal_value = body.rate_cal_value;
+
+    const updated = await db("kpi_topic").where({ id }).update(updateData);
     if (!updated) {
       return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
 
-    await db("kpi_topic_department").where({ kpi_id: id }).delete();
+    if (assignments !== undefined) {
+      await db("kpi_topic_department").where({ kpi_id: id }).delete();
 
-    if (Array.isArray(assignments) && assignments.length > 0) {
-      await db("kpi_topic_department").insert(
-        assignments.map((a: { department_id: number; user_id?: number }) => ({
-          kpi_id: id,
-          department_id: a.department_id,
-          user_id: a.user_id || null,
-        }))
-      );
+      if (Array.isArray(assignments) && assignments.length > 0) {
+        await db("kpi_topic_department").insert(
+          assignments.map((a: { department_id: number; user_id?: number }) => ({
+            kpi_id: id,
+            department_id: a.department_id,
+            user_id: a.user_id || null,
+          }))
+        );
+      }
     }
 
     const topic = await db("kpi_topic").where({ id }).first();

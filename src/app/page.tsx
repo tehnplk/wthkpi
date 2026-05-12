@@ -39,6 +39,7 @@ interface ResultRow {
   kpi_name: string;
   kpi_type_id: number | null;
   kpi_type: string | null;
+  kpi_number: string | null;
   target: number | null;
   result: number | null;
   percent: number | null;
@@ -68,6 +69,14 @@ const statusIcons = {
 const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
   if (kpiTypeId == null) return "pill-kpi-type";
   return `pill-kpi-t${kpiTypeId % 6}`;
+};
+
+const metricTypeCardClass = (kpiTypeId: number) => `metric-card metric-card-type metric-card-type-${kpiTypeId % 6}`;
+
+const rateBadgeClass = (status: string) => {
+  if (status === "pass") return "number-badge-rate-pass";
+  if (status === "fail") return "number-badge-rate-fail";
+  return "number-badge-rate-pending";
 };
 
 function formatThaiShortDate(value: string | null) {
@@ -137,21 +146,21 @@ export default function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <div className="metric-card">
+        <div className="metric-card metric-card-topics">
           <div className="metric-head">
             <p className="metric-label">หัวข้อ KPI</p>
             <Target size={18} aria-hidden="true" />
           </div>
           <p className="metric-value">{data.totalTopics}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card metric-card-results">
           <div className="metric-head">
             <p className="metric-label">ผลรายงานทั้งหมด</p>
             <FileClock size={18} aria-hidden="true" />
           </div>
           <p className="metric-value">{data.totalResults}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card metric-card-status">
           <div className="metric-head">
             <p className="metric-label">ผ่าน / ไม่ผ่าน</p>
             <Gauge size={18} aria-hidden="true" />
@@ -162,7 +171,7 @@ export default function DashboardPage() {
             <span className="text-[#c24141]">{data.failCount}</span>
           </p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card metric-card-pending">
           <div className="metric-head">
             <p className="metric-label">รอดำเนินการ</p>
             <Clock3 size={18} aria-hidden="true" />
@@ -172,8 +181,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-        {data.kpiTypeSummary.map((summary) => (
-          <div key={summary.id} className="metric-card">
+        {(data.kpiTypeSummary || []).map((summary) => (
+          <div key={summary.id} className={metricTypeCardClass(summary.id)}>
             <div className="metric-head">
               <p className="metric-label">{summary.type}</p>
               <Target size={18} aria-hidden="true" />
@@ -205,12 +214,12 @@ export default function DashboardPage() {
         <table className="data-table text-sm">
           <thead>
             <tr>
+              <th className="sortable-th w-12" onClick={() => handleSort("kpi_number")}>#</th>
               <th className="sortable-th" onClick={() => handleSort("kpi_name")}>KPI</th>
               <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย</th>
-              <th className="sortable-th" onClick={() => handleSort("result")}>ผลลัพธ์</th>
-              <th className="sortable-th" onClick={() => handleSort("percent")}>%</th>
+              <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
+              <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
-              <th className="sortable-th" onClick={() => handleSort("report_date")}>วันที่</th>
             </tr>
           </thead>
           <tbody>
@@ -220,16 +229,29 @@ export default function DashboardPage() {
               </tr>
             ) : (
               sortedRecent.map((r) => (
-                <tr key={r.id}>
+                <tr key={r.kpi_id}>
+                  <td data-label="#" className="w-12">
+                    {r.kpi_number ? <span className="number-badge kpi-number-badge">{r.kpi_number}</span> : "-"}
+                  </td>
                   <td data-label="KPI" className="font-semibold text-[#17211d]">
                     {r.kpi_name}
                     <div className="mt-1">
                       <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
                     </div>
                   </td>
-                  <td data-label="เป้าหมาย">{r.target ?? "-"}</td>
-                  <td data-label="ผลลัพธ์">{r.result ?? "-"}</td>
-                  <td data-label="%">{r.percent ? `${r.percent}%` : "-"}</td>
+                  <td data-label="เป้าหมาย">
+                    {r.target != null ? <span className="number-badge">{r.target}</span> : "-"}
+                  </td>
+                  <td data-label="ผลงาน">
+                    {r.result != null ? <span className="number-badge">{r.result}</span> : "-"}
+                  </td>
+                  <td data-label="อัตรา">
+                    {r.percent != null ? (
+                      <span className={`number-badge number-badge-rate ${rateBadgeClass(r.status)}`}>
+                        {r.percent}
+                      </span>
+                    ) : "-"}
+                  </td>
                   <td data-label="สถานะ">
                     <span className={`pill ${statusColors[r.status] || "pill-muted"}`}>
                       {(() => {
@@ -239,7 +261,6 @@ export default function DashboardPage() {
                       {statusLabels[r.status] || r.status}
                     </span>
                   </td>
-                  <td data-label="วันที่" className="text-[#64746d]">{formatThaiShortDate(r.report_date)}</td>
                 </tr>
               ))
             )}

@@ -1,32 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
-import { getSession } from "@/lib/auth";
 
-function unauthorized() {
-  return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
+const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
+
+function thaiBudgetYear(): number {
+  const now = new Date();
+  const y = now.getFullYear() + 543;
+  return now.getMonth() >= 9 ? y + 1 : y;
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const kpiId = searchParams.get("kpi_id");
     const kpiTypeId = searchParams.get("kpi_type_id");
     const status = searchParams.get("status");
     const topic = searchParams.get("topic")?.trim();
-    const from = searchParams.get("from");
-    const to = searchParams.get("to");
+    const budgetYear = searchParams.get("budget_year")
+      ? Number(searchParams.get("budget_year"))
+      : thaiBudgetYear();
+
+    const aggSub = db("kpi_result_mon")
+      .select("kpi_id", "budget_year")
+      .max("target as target")
+      .sum("result as sum_result")
+      .where("budget_year", budgetYear)
+      .groupBy("kpi_id", "budget_year")
+      .as("agg");
 
     let query = db("kpi_topic")
-      .leftJoin("kpi_result", "kpi_topic.id", "kpi_result.kpi_id")
+      .leftJoin(aggSub, function () {
+        this.on("kpi_topic.id", "=", "agg.kpi_id");
+      })
       .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
       .select(
-        "kpi_result.id",
-        "kpi_result.target",
-        "kpi_result.result",
-        "kpi_result.percent",
-        db.raw("COALESCE(kpi_result.status, kpi_topic.status, 'pending') as status"),
-        "kpi_result.note",
-        db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
+        db.raw("NULL as id"),
+        "agg.target",
+        "agg.sum_result as result",
+        db.raw("ROUND(agg.sum_result / NULLIF(agg.target, 0) * kpi_topic.rate_cal_value, 2) as percent"),
+        db.raw(`${STATUS_EXPR} as status`),
+        db.raw("NULL as note"),
+        db.raw(`'${budgetYear}' as report_date`),
         "kpi_topic.id as kpi_id",
         "kpi_topic.name as kpi_name",
         "kpi_topic.kpi_type_id",
@@ -35,52 +48,17 @@ export async function GET(request: NextRequest) {
         "kpi_topic.note as topic_note"
       );
 
-    if (kpiId) query = query.where("kpi_topic.id", kpiId);
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
     if (topic) query = query.where("kpi_topic.name", "like", `%${topic}%`);
-    if (status) query = query.whereRaw("COALESCE(kpi_result.status, kpi_topic.status, 'pending') = ?", [status]);
-    if (from) query = query.where("kpi_result.report_date", ">=", from);
-    if (to) query = query.where("kpi_result.report_date", "<=", to);
+    if (status) {
+      query = query.whereRaw(
+        `${STATUS_EXPR} = ?`,
+        [status]
+      );
+    }
 
     const results = await query.orderBy("kpi_topic.name", "asc");
     return NextResponse.json(results);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getSession();
-    if (!session) return unauthorized();
-
-    const body = await request.json();
-    const insertData: Record<string, unknown> = {
-      kpi_id: body.kpi_id,
-      target: body.target ?? null,
-      result: body.result ?? null,
-      percent: body.percent ?? null,
-      status: body.status || "pending",
-      note: body.note || null,
-      report_date: body.report_date || null,
-    };
-    const [id] = await db("kpi_result").insert(insertData);
-    const result = await db("kpi_result")
-      .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
-      .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
-      .select(
-        "kpi_result.*",
-        db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
-        "kpi_topic.name as kpi_name",
-        "kpi_topic.kpi_type_id",
-        "kpi_type.type as kpi_type",
-        "kpi_topic.kpi_number",
-        "kpi_topic.note as topic_note"
-      )
-      .where("kpi_result.id", id)
-      .first();
-    return NextResponse.json(result, { status: 201 });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: msg }, { status: 500 });

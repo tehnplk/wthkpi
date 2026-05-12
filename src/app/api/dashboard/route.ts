@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 
+function thaiBudgetYear(): number {
+  const now = new Date();
+  const y = now.getFullYear() + 543;
+  return now.getMonth() >= 9 ? y + 1 : y;
+}
+
+function aggSub() {
+  const by = thaiBudgetYear();
+  return db("kpi_result_mon")
+    .select("kpi_id", "budget_year")
+    .max("target as target")
+    .sum("result as sum_result")
+    .where("budget_year", by)
+    .groupBy("kpi_id", "budget_year")
+    .as("agg");
+}
+
 interface CountRow {
   count: number;
 }
@@ -20,40 +37,62 @@ interface KpiTypeSummaryRow {
   pending_count: number;
 }
 
+const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
+
 export async function GET() {
   try {
+    const by = thaiBudgetYear();
+
     const [totalTopics, totalResults, statusCounts, kpiTypeSummary, recentResults] = await Promise.all([
       db("kpi_topic").count("* as count").first(),
-      db("kpi_result").count("* as count").first(),
+
+      db(aggSub()).count("* as count").whereNotNull("agg.sum_result").first(),
+
       db("kpi_topic")
-        .leftJoin("kpi_result", "kpi_topic.id", "kpi_result.kpi_id")
-        .select(db.raw("COALESCE(kpi_result.status, kpi_topic.status, 'pending') as status"))
+        .leftJoin(aggSub(), function () {
+          this.on("kpi_topic.id", "=", "agg.kpi_id");
+        })
+        .select(db.raw(`${STATUS_EXPR} as status`))
         .count("* as count")
-        .groupByRaw("COALESCE(kpi_result.status, kpi_topic.status, 'pending')") as Promise<StatusRow[]>,
+        .groupByRaw(STATUS_EXPR) as unknown as Promise<StatusRow[]>,
+
       db("kpi_type")
         .leftJoin("kpi_topic", "kpi_type.id", "kpi_topic.kpi_type_id")
-        .leftJoin("kpi_result", "kpi_topic.id", "kpi_result.kpi_id")
+        .leftJoin(aggSub(), function () {
+          this.on("kpi_topic.id", "=", "agg.kpi_id");
+        })
         .select("kpi_type.id", "kpi_type.type")
         .countDistinct("kpi_topic.id as total_topics")
-        .count("kpi_result.id as total_results")
+        .count("agg.kpi_id as total_results")
         .sum({
-          pass_count: db.raw("CASE WHEN COALESCE(kpi_result.status, kpi_topic.status, 'pending') = 'pass' THEN 1 ELSE 0 END"),
-          fail_count: db.raw("CASE WHEN COALESCE(kpi_result.status, kpi_topic.status, 'pending') = 'fail' THEN 1 ELSE 0 END"),
-          pending_count: db.raw("CASE WHEN COALESCE(kpi_result.status, kpi_topic.status, 'pending') = 'pending' THEN 1 ELSE 0 END"),
+          pass_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'pass' THEN 1 ELSE 0 END`),
+          fail_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'fail' THEN 1 ELSE 0 END`),
+          pending_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'pending' THEN 1 ELSE 0 END`),
         })
         .groupBy("kpi_type.id", "kpi_type.type")
         .orderBy("kpi_type.id", "asc") as unknown as Promise<KpiTypeSummaryRow[]>,
-      db("kpi_result")
-        .join("kpi_topic", "kpi_result.kpi_id", "kpi_topic.id")
+
+      db("kpi_topic")
+        .leftJoin(aggSub(), function () {
+          this.on("kpi_topic.id", "=", "agg.kpi_id");
+        })
         .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
         .select(
-          "kpi_result.*",
-          db.raw("DATE_FORMAT(kpi_result.report_date, '%Y-%m-%d') as report_date"),
+          db.raw("NULL as id"),
+          "agg.target",
+          "agg.sum_result as result",
+          db.raw("ROUND(agg.sum_result / NULLIF(agg.target, 0) * kpi_topic.rate_cal_value, 2) as percent"),
+          db.raw(`${STATUS_EXPR} as status`),
+          db.raw(`'${by}' as report_date`),
+          "kpi_topic.id as kpi_id",
           "kpi_topic.name as kpi_name",
           "kpi_topic.kpi_type_id",
-          "kpi_type.type as kpi_type"
+          "kpi_type.type as kpi_type",
+          "kpi_topic.kpi_number",
+          "kpi_topic.note as topic_note"
         )
-        .orderBy("kpi_result.created_at", "desc")
+        .whereNotNull("agg.kpi_id")
+        .orderByRaw("agg.sum_result / NULLIF(agg.target, 0) DESC")
         .limit(20),
     ]);
 

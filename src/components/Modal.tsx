@@ -9,7 +9,7 @@ interface ModalProps {
   title: string;
   subtitle?: string;
   onClose: () => void;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export function Modal({ children, isOpen, title, subtitle, onClose, size = "md" }: ModalProps) {

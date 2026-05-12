@@ -21,6 +21,7 @@ interface Topic {
   status: string;
   kpi_number: string | null;
   note: string | null;
+  rate_cal_value: number | null;
   departments: TopicDepartment[];
 }
 
@@ -61,12 +62,14 @@ export default function KpiTopicsPage() {
   const [kpiTypeId, setKpiTypeId] = useState("");
   const [kpiNumber, setKpiNumber] = useState("");
   const [note, setNote] = useState("");
+  const [rateCalValue, setRateCalValue] = useState("");
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editKpiTypeId, setEditKpiTypeId] = useState("");
   const [editKpiNumber, setEditKpiNumber] = useState("");
   const [editNote, setEditNote] = useState("");
+  const [editRateCalValue, setEditRateCalValue] = useState("");
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState("");
@@ -111,6 +114,7 @@ export default function KpiTopicsPage() {
     setEditKpiTypeId("");
     setEditKpiNumber("");
     setEditNote("");
+    setEditRateCalValue("");
     setEditAssignments([emptyAssignment()]);
   };
 
@@ -120,6 +124,7 @@ export default function KpiTopicsPage() {
     setKpiTypeId("");
     setKpiNumber("");
     setNote("");
+    setRateCalValue("");
     setAssignments([emptyAssignment()]);
     setError("");
     setIsFormOpen(true);
@@ -131,6 +136,7 @@ export default function KpiTopicsPage() {
     setEditKpiTypeId(topic.kpi_type_id ? String(topic.kpi_type_id) : "");
     setEditKpiNumber(topic.kpi_number || "");
     setEditNote(topic.note || "");
+    setEditRateCalValue(topic.rate_cal_value != null ? String(topic.rate_cal_value) : "");
     const depts = topic.departments || [];
     setEditAssignments(
       depts.length > 0
@@ -157,6 +163,7 @@ export default function KpiTopicsPage() {
         status: "pending",
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
+        rate_cal_value: rateCalValue ? Number(rateCalValue) : null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -191,6 +198,7 @@ export default function KpiTopicsPage() {
         kpi_type_id: editKpiTypeId ? Number(editKpiTypeId) : null,
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
+        rate_cal_value: editRateCalValue ? Number(editRateCalValue) : null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -384,6 +392,17 @@ export default function KpiTopicsPage() {
               rows={2}
               value={isEditing ? editNote : note}
               onChange={(event) => isEditing ? setEditNote(event.target.value) : setNote(event.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="topic-rate-cal-value">ตัวคิดอัตรา</label>
+            <input
+              id="topic-rate-cal-value"
+              type="number"
+              step="0.01"
+              value={isEditing ? editRateCalValue : rateCalValue}
+              onChange={(event) => isEditing ? setEditRateCalValue(event.target.value) : setRateCalValue(event.target.value)}
             />
           </div>
 
