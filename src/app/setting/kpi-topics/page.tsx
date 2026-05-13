@@ -320,6 +320,7 @@ export default function KpiTopicsPage() {
         <label className="filter-search">
           <input
             type="search"
+            autoComplete="off"
             value={filterTopic}
             onChange={(event) => setFilterTopic(event.target.value)}
             placeholder="พิมพ์ชื่อตัวชี้วัด..."
@@ -352,6 +353,7 @@ export default function KpiTopicsPage() {
             <input
               id="topic-number"
               type="text"
+              autoComplete="off"
               value={isEditing ? editKpiNumber : kpiNumber}
               onChange={(event) => isEditing ? setEditKpiNumber(event.target.value) : setKpiNumber(event.target.value)}
               placeholder="เช่น 1, 1.1, พิเศษ"
@@ -364,6 +366,7 @@ export default function KpiTopicsPage() {
             <input
               id="topic-name"
               type="text"
+              autoComplete="off"
               value={isEditing ? editName : name}
               onChange={(event) => isEditing ? setEditName(event.target.value) : setName(event.target.value)}
               required
@@ -388,6 +391,7 @@ export default function KpiTopicsPage() {
             <label htmlFor="topic-note">หมายเหตุ</label>
             <textarea
               id="topic-note"
+              autoComplete="off"
               rows={2}
               value={isEditing ? editNote : note}
               onChange={(event) => isEditing ? setEditNote(event.target.value) : setNote(event.target.value)}
@@ -400,6 +404,7 @@ export default function KpiTopicsPage() {
               id="topic-rate-cal-value"
               type="number"
               step="0.01"
+              autoComplete="off"
               value={isEditing ? editRateCalValue : rateCalValue}
               onChange={(event) => isEditing ? setEditRateCalValue(event.target.value) : setRateCalValue(event.target.value)}
             />

@@ -332,6 +332,7 @@ export default function KpiResultsPage() {
                   <input
                     id="mon-budget-year"
                     type="number"
+                    autoComplete="off"
                     value={monBudgetYear}
                     onChange={(e) => setMonBudgetYear(Number(e.target.value))}
                     className="w-32"
@@ -345,6 +346,7 @@ export default function KpiResultsPage() {
                       id="mon-rate-cal-value"
                       type="number"
                       step="0.01"
+                      autoComplete="off"
                       value={monRateCalValue}
                       onChange={(e) => setMonRateCalValue(e.target.value)}
                       className="rate-formula-input"
@@ -393,6 +395,7 @@ export default function KpiResultsPage() {
                         <input
                           type="number"
                           step="0.01"
+                          autoComplete="off"
                           value={monTarget}
                           autoFocus
                           onFocus={(e) => e.target.select()}
@@ -420,6 +423,7 @@ export default function KpiResultsPage() {
                           <input
                             type="number"
                             step="0.01"
+                            autoComplete="off"
                             value={v}
                             autoFocus
                             onFocus={(e) => e.target.select()}
@@ -475,6 +479,7 @@ export default function KpiResultsPage() {
         <label className="filter-search">
           <input
             type="search"
+            autoComplete="off"
             value={filterTopic}
             onChange={(event) => setFilterTopic(event.target.value)}
             placeholder="พิมพ์ชื่อหัวข้อ KPI..."

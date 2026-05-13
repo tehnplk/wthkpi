@@ -73,6 +73,7 @@ function LoginForm() {
             <input
               id="username"
               type="text"
+              autoComplete="off"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="กรอกชื่อผู้ใช้"
@@ -86,6 +87,7 @@ function LoginForm() {
             <input
               id="password"
               type="password"
+              autoComplete="off"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="กรอกรหัสผ่าน"

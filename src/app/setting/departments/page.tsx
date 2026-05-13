@@ -166,6 +166,7 @@ export default function DepartmentsPage() {
             <input
               id="department-name"
               type="text"
+              autoComplete="off"
               value={editingId ? editName : name}
               onChange={(event) => editingId ? setEditName(event.target.value) : setName(event.target.value)}
               autoFocus

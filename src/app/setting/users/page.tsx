@@ -206,6 +206,7 @@ export default function UsersPage() {
               <input
                 id="provider-id"
                 type="text"
+                autoComplete="off"
                 value={providerId}
                 onChange={(event) => setProviderId(event.target.value)}
                 autoFocus
@@ -217,6 +218,7 @@ export default function UsersPage() {
               <input
                 id="fullname"
                 type="text"
+                autoComplete="off"
                 value={fullname}
                 onChange={(event) => setFullname(event.target.value)}
                 required
@@ -227,6 +229,7 @@ export default function UsersPage() {
               <input
                 id="username"
                 type="text"
+                autoComplete="off"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
               />
@@ -236,6 +239,7 @@ export default function UsersPage() {
               <input
                 id="password"
                 type="password"
+                autoComplete="off"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder={editingId ? "เว้นว่างถ้าไม่เปลี่ยน" : ""}

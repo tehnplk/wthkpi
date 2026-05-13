@@ -176,6 +176,7 @@ export default function KpiTypePage() {
             <input
               id="kpi-type-name"
               type="text"
+              autoComplete="off"
               value={isEditing ? editType : type}
               onChange={(event) => isEditing ? setEditType(event.target.value) : setType(event.target.value)}
               autoFocus
