@@ -344,33 +344,35 @@ export default function KpiTopicsPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={closeForm}
-        size="lg"
+        size="xl"
         title={isEditing ? "แก้ไขตัวชี้วัด" : "เพิ่มตัวชี้วัด"}
       >
         <form onSubmit={isEditing ? handleUpdate : handleCreate} className="login-form">
-          <div className="form-group">
-            <label htmlFor="topic-number">ตัวชี้วัดที่</label>
-            <input
-              id="topic-number"
-              type="text"
-              autoComplete="off"
-              value={isEditing ? editKpiNumber : kpiNumber}
-              onChange={(event) => isEditing ? setEditKpiNumber(event.target.value) : setKpiNumber(event.target.value)}
-              placeholder="เช่น 1, 1.1, พิเศษ"
-              autoFocus
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_9fr] gap-3">
+            <div className="form-group">
+              <label htmlFor="topic-number">ตัวชี้วัดที่</label>
+              <input
+                id="topic-number"
+                type="text"
+                autoComplete="off"
+                value={isEditing ? editKpiNumber : kpiNumber}
+                onChange={(event) => isEditing ? setEditKpiNumber(event.target.value) : setKpiNumber(event.target.value)}
+                placeholder="เช่น 1, 1.1, พิเศษ"
+                autoFocus
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="topic-name">ชื่อตัวชี้วัด</label>
-            <input
-              id="topic-name"
-              type="text"
-              autoComplete="off"
-              value={isEditing ? editName : name}
-              onChange={(event) => isEditing ? setEditName(event.target.value) : setName(event.target.value)}
-              required
-            />
+            <div className="form-group">
+              <label htmlFor="topic-name">ชื่อตัวชี้วัด</label>
+              <input
+                id="topic-name"
+                type="text"
+                autoComplete="off"
+                value={isEditing ? editName : name}
+                onChange={(event) => isEditing ? setEditName(event.target.value) : setName(event.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group">
@@ -387,27 +389,34 @@ export default function KpiTopicsPage() {
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="topic-note">หมายเหตุ</label>
-            <textarea
-              id="topic-note"
-              autoComplete="off"
-              rows={2}
-              value={isEditing ? editNote : note}
-              onChange={(event) => isEditing ? setEditNote(event.target.value) : setNote(event.target.value)}
-            />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 items-start">
+            <div className="form-group">
+              <label htmlFor="topic-note">หมายเหตุ</label>
+              <textarea
+                id="topic-note"
+                autoComplete="off"
+                rows={2}
+                value={isEditing ? editNote : note}
+                onChange={(event) => isEditing ? setEditNote(event.target.value) : setNote(event.target.value)}
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="topic-rate-cal-value">ตัวคิดอัตรา</label>
-            <input
-              id="topic-rate-cal-value"
-              type="number"
-              step="0.01"
-              autoComplete="off"
-              value={isEditing ? editRateCalValue : rateCalValue}
-              onChange={(event) => isEditing ? setEditRateCalValue(event.target.value) : setRateCalValue(event.target.value)}
-            />
+            <div className="form-group">
+              <label htmlFor="topic-rate-cal-value">การคำนวณอัตรา</label>
+              <div className="rate-formula-control">
+                <span className="rate-formula-text">(ผลงาน/เป้าหมาย) x</span>
+                <input
+                  id="topic-rate-cal-value"
+                  type="number"
+                  step="0.01"
+                  autoComplete="off"
+                  value={isEditing ? editRateCalValue : rateCalValue}
+                  onChange={(event) => isEditing ? setEditRateCalValue(event.target.value) : setRateCalValue(event.target.value)}
+                  className="rate-formula-input"
+                  aria-label="ตัวเลขสำหรับคำนวณอัตรา"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-group">

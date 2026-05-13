@@ -953,7 +953,7 @@ button:disabled {
 }
 
 .modal-xl {
-  max-width: 85vw;
+  max-width: calc(85vw - 30px);
 }
 
 .modal-header {
