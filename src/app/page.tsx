@@ -11,42 +11,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { DashboardData } from "@/app/models/dashboard";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface DashboardData {
-  totalTopics: number;
-  totalResults: number;
-  passCount: number;
-  failCount: number;
-  pendingCount: number;
-  kpiTypeSummary: KpiTypeSummary[];
-  recentResults: ResultRow[];
-}
-
-interface KpiTypeSummary {
-  id: number;
-  type: string;
-  totalTopics: number;
-  totalResults: number;
-  passCount: number;
-  failCount: number;
-  pendingCount: number;
-}
-
-interface ResultRow {
-  id: number;
-  kpi_id: number;
-  kpi_name: string;
-  kpi_type_id: number | null;
-  kpi_type: string | null;
-  kpi_number: string | null;
-  target: number | null;
-  result: number | null;
-  percent: number | null;
-  status: string;
-  note: string | null;
-  report_date: string | null;
-}
 
 const statusColors: Record<string, string> = {
   pass: "pill-pass",

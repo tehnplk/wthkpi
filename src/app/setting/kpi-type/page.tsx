@@ -3,13 +3,9 @@
 import { Pencil, Plus, Save, Tags, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
+import type { KpiType } from "@/app/models/common";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface KpiType {
-  id: number;
-  type: string;
-}
 
 const kpiTypeBadgeClass = (kpiTypeId: number | null) => {
   if (kpiTypeId == null) return "pill-kpi-type";

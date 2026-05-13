@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import type { CountRow, StatusCountRow as StatusRow } from "@/app/models/common";
+import type { KpiTypeSummaryRow } from "@/app/models/dashboard";
 import db from "@/lib/db";
 
 function thaiBudgetYear(): number {
@@ -16,25 +18,6 @@ function aggSub() {
     .where("budget_year", by)
     .groupBy("kpi_id", "budget_year")
     .as("agg");
-}
-
-interface CountRow {
-  count: number;
-}
-
-interface StatusRow {
-  status: string;
-  count: number;
-}
-
-interface KpiTypeSummaryRow {
-  id: number;
-  type: string;
-  total_topics: number;
-  total_results: number;
-  pass_count: number;
-  fail_count: number;
-  pending_count: number;
 }
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";

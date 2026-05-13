@@ -3,24 +3,10 @@
 import { Pencil, Save, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
+import type { Department } from "@/app/models/common";
+import type { User } from "@/app/models/user";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface User {
-  id: number;
-  provider_id: string;
-  fullname: string;
-  username: string | null;
-  department_id: number | null;
-  department_name: string | null;
-  is_active: boolean;
-  last_login: string | null;
-}
-
-interface Department {
-  id: number;
-  name: string;
-}
 
 function formatThaiDateTime(value: string | null) {
   if (!value) return "-";

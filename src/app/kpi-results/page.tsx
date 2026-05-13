@@ -11,37 +11,10 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
+import type { KpiType } from "@/app/models/common";
+import type { KpiResultRow as Result, KpiResultTopic as Topic } from "@/app/models/kpi-result";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface Topic {
-  id: number;
-  name: string;
-  kpi_type_id: number | null;
-  kpi_type: string | null;
-  rate_cal_value: number | null;
-}
-
-interface KpiType {
-  id: number;
-  type: string;
-}
-
-interface Result {
-  id: number | null;
-  kpi_id: number;
-  kpi_name: string;
-  kpi_type_id: number | null;
-  kpi_type: string | null;
-  kpi_number: string | null;
-  topic_note: string | null;
-  target: number | null;
-  result: number | null;
-  percent: number | null;
-  status: string | null;
-  note: string | null;
-  report_date: string | null;
-}
 
 const statusColors: Record<string, string> = {
   pass: "pill-pass",

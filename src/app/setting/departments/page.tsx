@@ -3,13 +3,9 @@
 import { Building2, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
+import type { Department } from "@/app/models/common";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface Department {
-  id: number;
-  name: string;
-}
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);

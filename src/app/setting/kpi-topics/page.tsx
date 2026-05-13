@@ -3,45 +3,10 @@
 import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
+import type { Department, KpiType } from "@/app/models/common";
+import type { KpiTopic as Topic, KpiTopicUser as User } from "@/app/models/kpi-topic";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
-
-interface TopicDepartment {
-  id: number;
-  name: string;
-  user_id: number | null;
-  user_owner: string | null;
-}
-
-interface Topic {
-  id: number;
-  name: string;
-  kpi_type_id: number | null;
-  kpi_type: string | null;
-  status: string;
-  kpi_number: string | null;
-  note: string | null;
-  rate_cal_value: number | null;
-  departments: TopicDepartment[];
-}
-
-interface KpiType {
-  id: number;
-  type: string;
-}
-
-interface Department {
-  id: number;
-  name: string;
-}
-
-interface User {
-  id: number;
-  fullname: string;
-  username: string;
-  department_id: number | null;
-  department_name: string | null;
-}
 
 interface Assignment {
   deptId: number;
