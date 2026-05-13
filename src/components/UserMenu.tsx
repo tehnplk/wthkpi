@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { LogIn, LogOut, User } from "lucide-react";
 
 interface UserInfo {
   id: number;
@@ -32,8 +32,9 @@ export function UserMenu() {
   if (!user) {
     return (
       <div className="user-menu">
-        <a href="/login" className="btn btn-primary text-sm w-full">
-          เข้าสู่ระบบ
+        <a href="/login" className="btn btn-primary btn-login text-sm w-full" aria-label="เข้าสู่ระบบ">
+          <LogIn size={14} aria-hidden="true" />
+          <span className="login-label">เข้าสู่ระบบ</span>
         </a>
       </div>
     );

@@ -224,6 +224,7 @@ button:disabled {
 .sidebar-collapsed .sidebar h1,
 .sidebar-collapsed .nav-label,
 .sidebar-collapsed .user-name,
+.sidebar-collapsed .login-label,
 .sidebar-collapsed .logout-label {
   opacity: 0;
   pointer-events: none;
@@ -302,6 +303,7 @@ button:disabled {
 }
 
 .sidebar-collapsed .user-info,
+.sidebar-collapsed .btn-login,
 .sidebar-collapsed .btn-logout {
   font-size: 0;
   justify-content: center;
@@ -1134,6 +1136,7 @@ button:disabled {
   max-width: 180px;
 }
 
+.btn-login,
 .btn-logout {
   background: var(--soft-control);
   color: var(--accent-strong);
@@ -1143,11 +1146,13 @@ button:disabled {
   width: 100%;
 }
 
+.btn-login:hover,
 .btn-logout:hover {
   background: var(--soft-control-hover);
   color: var(--accent-strong);
 }
 
+.login-label,
 .logout-label {
   display: inline;
 }
@@ -1275,6 +1280,7 @@ button:disabled {
   .sidebar-collapsed .sidebar .brand-mark + div,
   .sidebar-collapsed .nav-label,
   .sidebar-collapsed .user-name,
+  .sidebar-collapsed .login-label,
   .sidebar-collapsed .logout-label {
     opacity: 1;
     pointer-events: auto;
@@ -1283,6 +1289,7 @@ button:disabled {
 
   .sidebar-collapsed .nav-link,
   .sidebar-collapsed .user-info,
+  .sidebar-collapsed .btn-login,
   .sidebar-collapsed .btn-logout {
     font-size: inherit;
   }
