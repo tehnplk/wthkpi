@@ -181,7 +181,6 @@ export default function UsersPage() {
             </span>
             <h2 className="page-title">ผู้ใช้</h2>
           </div>
-          <p className="page-subtitle">จัดการผู้ใช้ แผนก และสถานะการใช้งานของระบบรายงาน</p>
         </div>
       </header>
 

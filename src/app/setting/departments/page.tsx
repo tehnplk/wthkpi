@@ -142,7 +142,6 @@ export default function DepartmentsPage() {
             </span>
             <h2 className="page-title">แผนก</h2>
           </div>
-          <p className="page-subtitle">จัดการชื่อแผนกสำหรับผู้ใช้และการกำหนดเจ้าของ KPI</p>
         </div>
       </header>
 

@@ -87,6 +87,13 @@ function formatThaiShortDate(value: string | null) {
   }).format(date);
 }
 
+function formatDecimal(value: string | number | null) {
+  if (value === null || value === "") return "-";
+  const numberValue = Number(value);
+  if (Number.isNaN(numberValue)) return "-";
+  return numberValue.toFixed(2);
+}
+
 const MONTHS = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย."];
 
 function thaiBudgetYear(): number {
@@ -215,6 +222,20 @@ export default function KpiResultsPage() {
     setEditCell(null);
   };
 
+  const clearMonResults = async () => {
+    const confirmed = await confirmAction(
+      "ล้างผลงานรายเดือนหรือไม่?",
+      "ระบบจะล้างเฉพาะผลงานรายเดือน กดบันทึกเพื่อยืนยันการเปลี่ยนแปลง",
+      "ยืนยัน"
+    );
+    if (!confirmed) return;
+
+    setMonValues(Array(12).fill(""));
+    setMonTopicStatus("pending");
+    setEditCell(null);
+    notifySuccess("ล้างผลงานแล้ว");
+  };
+
   const monSum = monValues.reduce((acc, v) => acc + (Number(v) || 0), 0);
   const monRate = monTarget && Number(monTarget) && monRateCalValue ? ((monSum / Number(monTarget)) * Number(monRateCalValue)).toFixed(2) : null;
 
@@ -288,7 +309,6 @@ export default function KpiResultsPage() {
             </span>
             <h2 className="page-title">ผลงานตัวชี้วัด</h2>
           </div>
-          <p className="page-subtitle">คีย์ผลงานรายเดือนตามปีงบประมาณ</p>
         </div>
       </header>
 
@@ -305,96 +325,34 @@ export default function KpiResultsPage() {
         ) : (
           <form onSubmit={handleMonSave} className="login-form">
             {monError && <div className="alert">{monError}</div>}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="form-group mb-0">
-                <label htmlFor="mon-budget-year">ปีงบประมาณ</label>
-                <input
-                  id="mon-budget-year"
-                  type="number"
-                  value={monBudgetYear}
-                  onChange={(e) => setMonBudgetYear(Number(e.target.value))}
-                  className="w-32"
-                />
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="form-group mb-0">
+                  <label htmlFor="mon-budget-year">ปีงบประมาณ</label>
+                  <input
+                    id="mon-budget-year"
+                    type="number"
+                    value={monBudgetYear}
+                    onChange={(e) => setMonBudgetYear(Number(e.target.value))}
+                    className="w-32"
+                  />
+                </div>
+                <div className="form-group mb-0">
+                  <label htmlFor="mon-rate-cal-value">การคำนวณอัตรา</label>
+                  <div className="rate-formula-control">
+                    <span className="rate-formula-text">(ผลงาน/เป้าหมาย) x</span>
+                    <input
+                      id="mon-rate-cal-value"
+                      type="number"
+                      step="0.01"
+                      value={monRateCalValue}
+                      onChange={(e) => setMonRateCalValue(e.target.value)}
+                      className="rate-formula-input"
+                      aria-label="ตัวเลขสำหรับคำนวณอัตรา"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="form-group mb-0">
-                <label htmlFor="mon-target">เป้าหมาย</label>
-                <input
-                  id="mon-target"
-                  type="number"
-                  step="0.01"
-                  value={monTarget}
-                  onChange={(e) => setMonTarget(e.target.value)}
-                  className="w-32"
-                />
-              </div>
-              <div className="form-group mb-0">
-                <label htmlFor="mon-rate-cal-value">ตัวคิดอัตรา</label>
-                <input
-                  id="mon-rate-cal-value"
-                  type="number"
-                  step="0.01"
-                  value={monRateCalValue}
-                  onChange={(e) => setMonRateCalValue(e.target.value)}
-                  className="w-32"
-                />
-              </div>
-            </div>
-            <div className="data-table-wrap">
-              <table className="data-table text-sm">
-                <thead>
-                  <tr>
-                    <th className="w-20">เป้าหมาย</th>
-                    {MONTHS.map((m) => (
-                      <th key={m} className="w-16 text-center">{m}</th>
-                    ))}
-                    <th className="w-24 text-center">รวมผลงาน</th>
-                    <th className="w-20 text-center">อัตรา</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td data-label="เป้าหมาย">{monTarget || "-"}</td>
-                    {monValues.map((v, i) => (
-                      <td
-                        key={i}
-                        data-label={MONTHS[i]}
-                        className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
-                        onClick={() => setEditCell(i)}
-                      >
-                        {editCell === i ? (
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={v}
-                            autoFocus
-                            onChange={(e) => {
-                              const next = [...monValues];
-                              next[i] = e.target.value;
-                              setMonValues(next);
-                            }}
-                            onBlur={() => setEditCell(null)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") setEditCell(null);
-                              if (e.key === "Escape") setEditCell(null);
-                            }}
-                            className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none" style={{ minWidth: "72px", fontSize: "10px" }}
-                          />
-                        ) : (
-                          v || "-"
-                        )}
-                      </td>
-                    ))}
-                    <td data-label="รวมผลงาน" className="text-center text-[#17211d]">
-                      {monSum.toLocaleString()}
-                    </td>
-                    <td data-label="อัตรา" className="text-center">
-                      {monRate ?? "-"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="modal-actions mt-4">
               <div className="toggle-group">
                 {[
                   { key: "pending", label: "รอดำเนินการ" },
@@ -411,7 +369,92 @@ export default function KpiResultsPage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="data-table-wrap">
+              <table className="data-table text-sm">
+                <thead>
+                  <tr>
+                    <th className="w-20">เป้าหมาย</th>
+                    {MONTHS.map((m) => (
+                      <th key={m} className="w-16 text-center">{m}</th>
+                    ))}
+                    <th className="w-24 text-center">รวม</th>
+                    <th className="w-20 text-center">อัตรา</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      data-label="เป้าหมาย"
+                      className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
+                      onClick={() => setEditCell(-1)}
+                    >
+                      {editCell === -1 ? (
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={monTarget}
+                          autoFocus
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => setMonTarget(e.target.value)}
+                          onBlur={() => setEditCell(null)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") setEditCell(null);
+                            if (e.key === "Escape") setEditCell(null);
+                          }}
+                          className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none"
+                          style={{ minWidth: "96px", fontSize: "10px" }}
+                        />
+                      ) : (
+                        formatDecimal(monTarget)
+                      )}
+                    </td>
+                    {monValues.map((v, i) => (
+                      <td
+                        key={i}
+                        data-label={MONTHS[i]}
+                        className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
+                        onClick={() => setEditCell(i)}
+                      >
+                        {editCell === i ? (
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={v}
+                            autoFocus
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                              const next = [...monValues];
+                              next[i] = e.target.value;
+                              setMonValues(next);
+                            }}
+                            onBlur={() => setEditCell(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") setEditCell(null);
+                              if (e.key === "Escape") setEditCell(null);
+                            }}
+                            className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none" style={{ minWidth: "96px", fontSize: "10px" }}
+                          />
+                        ) : (
+                          formatDecimal(v)
+                        )}
+                      </td>
+                    ))}
+                    <td data-label="รวม" className="text-center text-[#17211d]">
+                      {formatDecimal(monSum)}
+                    </td>
+                    <td data-label="อัตรา" className="text-center">
+                      {formatDecimal(monRate)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="modal-actions modal-actions-center mt-4">
               <div className="flex items-center gap-2">
+                <button type="button" className="btn btn-danger" onClick={clearMonResults}>
+                  ล้างผลงาน
+                </button>
                 <button type="button" className="btn btn-soft" onClick={closeMonForm}>
                   ยกเลิก
                 </button>

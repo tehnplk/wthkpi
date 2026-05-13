@@ -28,7 +28,7 @@ export function notifyError(title: string) {
   });
 }
 
-export async function confirmAction(title: string, text?: string) {
+export async function confirmAction(title: string, text?: string, confirmButtonText = "ลบ") {
   const result = await Swal.fire({
     title,
     text,
@@ -36,7 +36,7 @@ export async function confirmAction(title: string, text?: string) {
     showCancelButton: true,
     confirmButtonColor: "#d84b4b",
     cancelButtonColor: "#64746d",
-    confirmButtonText: "ลบ",
+    confirmButtonText,
     cancelButtonText: "ยกเลิก",
     reverseButtons: true,
   });

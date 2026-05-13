@@ -308,7 +308,6 @@ export default function KpiTopicsPage() {
             </span>
             <h2 className="page-title">ตัวชี้วัด</h2>
           </div>
-          <p className="page-subtitle">กำหนดตัวชี้วัด ผู้รับผิดชอบ และหน่วยงานรับผิดชอบรายงาน</p>
         </div>
       </header>
 

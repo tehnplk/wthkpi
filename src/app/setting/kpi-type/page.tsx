@@ -152,7 +152,6 @@ export default function KpiTypePage() {
             </span>
             <h2 className="page-title">ประเภทตัวชี้วัด</h2>
           </div>
-          <p className="page-subtitle">จัดการประเภทสำหรับแยกกลุ่มตัวชี้วัด KPI</p>
         </div>
       </header>
 
