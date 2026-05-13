@@ -43,7 +43,7 @@ export function Modal({ children, isOpen, title, subtitle, onClose, size = "md" 
           <div>
             <h3 className="modal-title">{title}</h3>
             {subtitle && (
-              <p className="text-sm text-[#64746d] mt-0.5">{subtitle}</p>
+              <p className="text-sm text-[var(--muted)] mt-0.5">{subtitle}</p>
             )}
           </div>
           <button className="modal-close" type="button" onClick={onClose} aria-label="Close">
