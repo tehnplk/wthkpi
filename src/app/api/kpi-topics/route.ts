@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const topics = await db("kpi_topic")
+    const departmentId = request.nextUrl.searchParams.get("department_id");
+
+    let query = db("kpi_topic")
       .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")
-      .select("kpi_topic.*", "kpi_type.type as kpi_type")
-      .orderBy("kpi_topic.name");
+      .select("kpi_topic.*", "kpi_type.type as kpi_type");
+
+    if (departmentId) {
+      query = query.whereExists(function () {
+        this.select(db.raw("1"))
+          .from("kpi_topic_department")
+          .whereRaw("kpi_topic_department.kpi_id = kpi_topic.id")
+          .where("kpi_topic_department.department_id", departmentId);
+      });
+    }
+
+    const topics = await query.orderBy("kpi_topic.name");
 
     const topicIds = topics.map((t) => t.id);
     const links = topicIds.length

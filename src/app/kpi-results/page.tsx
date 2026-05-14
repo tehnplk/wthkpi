@@ -8,11 +8,13 @@ import {
   Save,
   Search,
   TriangleAlert,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
-import type { KpiType } from "@/app/models/common";
-import type { KpiResultRow as Result, KpiResultTopic as Topic } from "@/app/models/kpi-result";
+import type { Department, KpiType } from "@/app/models/common";
+import type { KpiTopic as Topic } from "@/app/models/kpi-topic";
+import type { KpiResultRow as Result } from "@/app/models/kpi-result";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
@@ -69,6 +71,14 @@ function formatDecimal(value: string | number | null) {
 
 const MONTHS = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย."];
 
+interface CurrentUser {
+  id: number;
+  fullname: string;
+  username: string | null;
+  department_id: number | null;
+  role: string;
+}
+
 function thaiBudgetYear(): number {
   const now = new Date();
   const y = now.getFullYear() + 543;
@@ -79,11 +89,13 @@ export default function KpiResultsPage() {
   const [results, setResults] = useState<Result[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
-  const [canManage, setCanManage] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [error, setError] = useState("");
 
   const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
   const [sortBy, setSortBy] = useState<string | null>(null);
@@ -106,6 +118,7 @@ export default function KpiResultsPage() {
     const params = new URLSearchParams();
     params.set("budget_year", String(monBudgetYear));
     if (filterKpiTypeId) params.set("kpi_type_id", filterKpiTypeId);
+    if (filterDepartmentId) params.set("department_id", filterDepartmentId);
     if (filterStatus) params.set("status", filterStatus);
     if (filterTopic.trim()) params.set("topic", filterTopic.trim());
     fetch(`/api/kpi-results?${params}`)
@@ -136,19 +149,51 @@ export default function KpiResultsPage() {
       .then((data) => {
         if (Array.isArray(data)) setKpiTypes(data);
       });
+    fetch("/api/departments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setDepartments(data);
+      });
     fetch("/api/auth/me")
-      .then((res) => {
-        setCanManage(res.ok);
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setCurrentUser(data);
       })
-      .catch(() => setCanManage(false));
+      .catch(() => setCurrentUser(null));
   }, []);
 
   useEffect(() => {
     if (!loading) loadResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKpiTypeId, filterStatus, filterTopic, monBudgetYear]);
+  }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear]);
+
+  const departmentLabelByKpiId = useMemo(() => {
+    const labels: Record<number, string[]> = {};
+    for (const topic of topics) {
+      labels[topic.id] = (topic.departments || []).map((dept) => dept.name);
+    }
+    return labels;
+  }, [topics]);
+
+  const departmentLabels = (kpiId: number) => {
+    return departmentLabelByKpiId[kpiId] || [];
+  };
+
+  const canEditKpi = (kpiId: number) => {
+    if (!currentUser) return false;
+    if (currentUser.role === "admin") return true;
+    if (!currentUser.department_id) return false;
+
+    const topic = topics.find((item) => item.id === kpiId);
+    return Boolean(topic?.departments?.some((dept) => dept.id === currentUser.department_id));
+  };
 
   const openMonForm = async (kpiId: number, kpiName: string, kpiNumber: string | null) => {
+    if (!canEditKpi(kpiId)) {
+      notifyError("แก้ไขได้เฉพาะ KPI ที่แผนกของคุณรับผิดชอบ");
+      return;
+    }
+
     setMonKpiId(kpiId);
     setMonKpiName(kpiName);
     setMonKpiNumber(kpiNumber || "");
@@ -267,6 +312,20 @@ export default function KpiResultsPage() {
     () => applySort(results, sortBy, sortDir),
     [results, sortBy, sortDir]
   );
+  const showManageColumn = sortedResults.some((row) => canEditKpi(row.kpi_id));
+  const activeFilterCount = [
+    filterTopic.trim(),
+    filterKpiTypeId,
+    filterDepartmentId,
+    filterStatus,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setFilterTopic("");
+    setFilterKpiTypeId("");
+    setFilterDepartmentId("");
+    setFilterStatus("");
+  };
 
   if (loading) {
     return <div className="loading-state">กำลังโหลดผลงาน...</div>;
@@ -445,31 +504,49 @@ export default function KpiResultsPage() {
         )}
       </Modal>
 
-      <div className="filter-bar result-filter-bar">
-        <div className="filter-icon hidden sm:flex items-center text-[#64746d]">
-          <Search size={18} aria-hidden="true" />
+      <div className="result-filter-panel">
+        <div className="result-filter-grid">
+          <label className="result-filter-search">
+            <Search size={17} aria-hidden="true" />
+            <input
+              type="search"
+              autoComplete="off"
+              value={filterTopic}
+              onChange={(event) => setFilterTopic(event.target.value)}
+              placeholder="พิมพ์ชื่อหัวข้อ KPI..."
+            />
+          </label>
+          <label className="result-filter-field">
+            <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)}>
+              <option value="">ทุกประเภท</option>
+              {kpiTypes.map((type) => (
+                <option key={type.id} value={type.id}>{type.type}</option>
+              ))}
+            </select>
+          </label>
+          <label className="result-filter-field result-filter-department">
+            <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)}>
+              <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>{dept.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="result-filter-field">
+            <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)}>
+              <option value="">ทุกสถานะ</option>
+              <option value="pass">ผ่าน</option>
+              <option value="fail">ไม่ผ่าน</option>
+              <option value="pending">รอดำเนินการ</option>
+            </select>
+          </label>
+          {activeFilterCount > 0 && (
+            <button type="button" className="btn btn-soft result-filter-clear" onClick={clearFilters}>
+              <X size={14} aria-hidden="true" />
+              ล้าง
+            </button>
+          )}
         </div>
-        <label className="filter-search">
-          <input
-            type="search"
-            autoComplete="off"
-            value={filterTopic}
-            onChange={(event) => setFilterTopic(event.target.value)}
-            placeholder="พิมพ์ชื่อหัวข้อ KPI..."
-          />
-        </label>
-        <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)} className="max-w-[160px]">
-          <option value="">ทุกประเภท</option>
-          {kpiTypes.map((type) => (
-            <option key={type.id} value={type.id}>{type.type}</option>
-          ))}
-        </select>
-        <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)} className="max-w-[140px]">
-          <option value="">ทุกสถานะ</option>
-          <option value="pass">ผ่าน</option>
-          <option value="fail">ไม่ผ่าน</option>
-          <option value="pending">รอดำเนินการ</option>
-        </select>
       </div>
 
       <div className="panel data-table-wrap">
@@ -477,18 +554,19 @@ export default function KpiResultsPage() {
           <thead>
             <tr>
               <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#</th>
+              <th className="w-32 sortable-th" onClick={() => handleSort("kpi_type")}>ประเภท</th>
               <th className="sortable-th" onClick={() => handleSort("kpi_name")}>ตัวชี้วัด</th>
               <th className="sortable-th" onClick={() => handleSort("target")}>เป้าหมาย</th>
               <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
-              {canManage && <th className="w-28">จัดการ</th>}
+              {showManageColumn && <th className="w-28">จัดการ</th>}
             </tr>
           </thead>
           <tbody>
             {sortedResults.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={canManage ? 7 : 6} className="empty-cell">ไม่พบผลงาน</td>
+                <td colSpan={showManageColumn ? 8 : 7} className="empty-cell">ไม่พบผลงาน</td>
               </tr>
             ) : (
               sortedResults.map((row) => (
@@ -496,13 +574,20 @@ export default function KpiResultsPage() {
                   <td data-label="#" className="result-number-cell text-[#64746d] w-12">
                     {row.kpi_number ? <span className="number-badge kpi-number-badge">{row.kpi_number}</span> : "-"}
                   </td>
+                  <td data-label="ประเภท" className="result-type-cell">
+                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(row.kpi_type_id)}`}>{row.kpi_type || "-"}</span>
+                  </td>
                   <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                     {row.kpi_name}
-                    <div className="mt-1">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(row.kpi_type_id)}`}>{row.kpi_type || "-"}</span>
-                    </div>
                     {row.topic_note && (
                       <div className="text-xs font-normal text-gray-500 mt-0.5">{row.topic_note}</div>
+                    )}
+                    {departmentLabels(row.kpi_id).length > 0 && (
+                      <div className="result-topic-departments">
+                        {departmentLabels(row.kpi_id).map((department) => (
+                          <span key={department} className="result-department-badge">{department}</span>
+                        ))}
+                      </div>
                     )}
                   </td>
                   <td data-label="เป้าหมาย" className="result-value-cell">
@@ -528,16 +613,20 @@ export default function KpiResultsPage() {
                       {statusLabels[row.status || "pending"] || row.status}
                     </span>
                   </td>
-                  {canManage && (
+                  {showManageColumn && (
                     <td data-label="จัดการ">
-                      <button
-                        type="button"
-                        onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
-                        className="btn btn-primary min-h-8 px-3 py-1 text-xs"
-                      >
-                        <CalendarPlus size={13} aria-hidden="true" />
-                        เพิ่ม
-                      </button>
+                      {canEditKpi(row.kpi_id) ? (
+                        <button
+                          type="button"
+                          onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
+                          className="btn btn-primary min-h-8 px-3 py-1 text-xs"
+                        >
+                          <CalendarPlus size={13} aria-hidden="true" />
+                          เพิ่ม
+                        </button>
+                      ) : (
+                        <span className="text-xs text-[#8a9891]">-</span>
+                      )}
                     </td>
                   )}
                 </tr>

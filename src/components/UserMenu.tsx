@@ -7,8 +7,10 @@ import { LogIn, LogOut, User } from "lucide-react";
 interface UserInfo {
   id: number;
   fullname: string;
-  username: string;
+  username: string | null;
   department_id: number | null;
+  department_name: string | null;
+  role: string;
 }
 
 export function UserMenu() {
@@ -29,6 +31,8 @@ export function UserMenu() {
     router.push("/login");
   }
 
+  const roleLabel = user?.role === "admin" ? "admin" : "user";
+
   if (!user) {
     return (
       <div className="user-menu">
@@ -44,7 +48,13 @@ export function UserMenu() {
     <div className="user-menu">
       <div className="user-info">
         <User size={15} />
-        <span className="user-name">{user.fullname}</span>
+        <div className="user-profile-text">
+          <span className="user-name">{user.fullname}</span>
+          <span className="user-meta">
+            <span>{user.department_name || "ไม่ระบุแผนก"}</span>
+            <span className="user-role-badge">{roleLabel}</span>
+          </span>
+        </div>
       </div>
       <button
         className="btn btn-soft btn-logout"

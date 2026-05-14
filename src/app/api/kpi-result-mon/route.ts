@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { canManageKpi } from "@/lib/kpi-access";
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,6 +31,11 @@ export async function POST(request: NextRequest) {
 
     if (!kpi_id || !budget_year || !Array.isArray(months)) {
       return NextResponse.json({ error: "ต้องระบุ kpi_id, budget_year, months" }, { status: 400 });
+    }
+
+    const session = await getSession();
+    if (!(await canManageKpi(session, kpi_id))) {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไข KPI นี้" }, { status: 403 });
     }
 
     await db.transaction(async (trx) => {

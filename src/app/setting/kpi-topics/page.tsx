@@ -40,6 +40,7 @@ export default function KpiTopicsPage() {
   const [error, setError] = useState("");
   const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
   const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -203,8 +204,9 @@ export default function KpiTopicsPage() {
   const isEditing = editingId !== null;
   const displayedTopics = topics.filter((topic) => {
     const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
+    const matchesDepartment = !filterDepartmentId || (topic.departments || []).some((dept) => dept.id === Number(filterDepartmentId));
     const matchesTopic = !filterTopic.trim() || topic.name.toLowerCase().includes(filterTopic.trim().toLowerCase());
-    return matchesType && matchesTopic;
+    return matchesType && matchesDepartment && matchesTopic;
   });
 
   const handleSort = (col: string) => {
@@ -295,6 +297,12 @@ export default function KpiTopicsPage() {
           <option value="">ทุกประเภท</option>
           {kpiTypes.map((type) => (
             <option key={type.id} value={type.id}>{type.type}</option>
+          ))}
+        </select>
+        <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)} className="max-w-[220px]">
+          <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>{dept.name}</option>
           ))}
         </select>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -42,6 +42,14 @@ const navGroups: NavGroup[] = [
 export function SidebarNav() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setRole(data?.role ?? null))
+      .catch(() => setRole(null));
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -74,7 +82,7 @@ export function SidebarNav() {
         <span className="nav-label">ผลงานตัวชี้วัด</span>
       </Link>
 
-      {navGroups.map((group) => {
+      {role === "admin" && navGroups.map((group) => {
         const GroupIcon = group.icon;
         const isGroupActive = group.items.some((item) => isActive(item.href));
         const isGroupExpanded = expanded[group.label] ?? isGroupActive;
@@ -95,7 +103,7 @@ export function SidebarNav() {
                 />
               </span>
             </button>
-            {expanded[group.label] && (
+            {isGroupExpanded && (
               <div className="nav-group-items">
                 {group.items.map((item) => {
                   const ItemIcon = item.icon;

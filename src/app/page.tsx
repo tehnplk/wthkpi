@@ -11,6 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { Department } from "@/app/models/common";
 import type { DashboardData } from "@/app/models/dashboard";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
@@ -65,19 +66,35 @@ function formatThaiShortDate(value: string | null) {
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir | null>(null);
 
   useEffect(() => {
-    fetch("/api/dashboard")
+    fetch("/api/departments")
+      .then((res) => res.json())
+      .then((json) => {
+        if (Array.isArray(json)) setDepartments(json);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (filterDepartmentId) params.set("department_id", filterDepartmentId);
+    const query = params.toString();
+
+    fetch(`/api/dashboard${query ? `?${query}` : ""}`)
       .then((res) => res.json())
       .then((json) => {
         setData(json);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [filterDepartmentId]);
 
   const handleSort = (col: string) => {
     const next = toggleSort(sortDir, col, sortBy);
@@ -110,6 +127,19 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
+
+      <div className="filter-bar mb-6">
+        <select
+          value={filterDepartmentId}
+          onChange={(event) => setFilterDepartmentId(event.target.value)}
+          className="max-w-[220px]"
+        >
+          <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>{dept.name}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="metric-card metric-card-topics">

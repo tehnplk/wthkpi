@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const kpiTypeId = searchParams.get("kpi_type_id");
+    const departmentId = searchParams.get("department_id");
     const status = searchParams.get("status");
     const topic = searchParams.get("topic")?.trim();
     const budgetYear = searchParams.get("budget_year")
@@ -49,6 +50,14 @@ export async function GET(request: NextRequest) {
       );
 
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
+    if (departmentId) {
+      query = query.whereExists(function () {
+        this.select(db.raw("1"))
+          .from("kpi_topic_department")
+          .whereRaw("kpi_topic_department.kpi_id = kpi_topic.id")
+          .where("kpi_topic_department.department_id", departmentId);
+      });
+    }
     if (topic) query = query.where("kpi_topic.name", "like", `%${topic}%`);
     if (status) {
       query = query.whereRaw(

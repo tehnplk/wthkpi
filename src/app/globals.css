@@ -223,6 +223,7 @@ button:disabled {
 .sidebar-collapsed .sidebar .eyebrow,
 .sidebar-collapsed .sidebar h1,
 .sidebar-collapsed .nav-label,
+.sidebar-collapsed .user-profile-text,
 .sidebar-collapsed .user-name,
 .sidebar-collapsed .login-label,
 .sidebar-collapsed .logout-label {
@@ -617,6 +618,99 @@ button:disabled {
 
 .filter-search input {
   padding-left: 0.75rem;
+}
+
+.result-filter-panel {
+  background: color-mix(in srgb, var(--panel) 92%, var(--panel-soft));
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+}
+
+.result-filter-clear {
+  align-self: end;
+  min-height: 2rem;
+  min-width: 4.2rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.result-filter-grid {
+  align-items: end;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(18rem, 1fr) minmax(8rem, 10rem) minmax(13rem, 16rem) minmax(8rem, 10rem) auto;
+}
+
+.result-filter-search {
+  align-items: center;
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+}
+
+.result-filter-search:focus-within {
+  border-color: #8ecfbe;
+  box-shadow: 0 0 0 3px rgba(15, 143, 114, 0.12);
+}
+
+.result-filter-search input {
+  background: transparent;
+  border: 0;
+  box-shadow: none !important;
+  min-width: 0;
+  padding: 0;
+}
+
+.result-filter-field {
+  display: grid;
+}
+
+.result-filter-field select {
+  min-height: 2.75rem;
+}
+
+.result-topic-departments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+  text-align: right;
+}
+
+.kpi-results-table .result-topic-cell .result-topic-departments {
+  text-align: right;
+}
+
+.result-department-badge {
+  background: color-mix(in srgb, var(--panel-soft) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border-radius: 999px;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 550;
+  line-height: 1;
+  padding: 0.18rem 0.4rem;
+}
+
+.kpi-results-table .result-type-cell .pill-kpi-type-badge {
+  font-size: 0.65rem;
+  line-height: 1;
+  min-height: 1.25rem;
+  padding: 0.2rem 0.45rem;
+}
+
+.kpi-results-table .result-type-cell .pill-kpi-type-badge::before {
+  height: 0.35rem;
+  margin-right: 0.3rem;
+  width: 0.35rem;
 }
 
 .section-title {
@@ -1118,22 +1212,55 @@ button:disabled {
 }
 
 .user-info {
-  align-items: center;
+  align-items: flex-start;
   align-self: stretch;
   color: var(--foreground);
   display: flex;
   font-size: 0.825rem;
   font-weight: 700;
   gap: 0.55rem;
-  min-height: 2rem;
-  padding: 0 0.35rem;
+  min-height: 2.4rem;
+  padding: 0.1rem 0.35rem;
+}
+
+.user-info svg {
+  margin-top: 0.1rem;
+}
+
+.user-profile-text {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
 .user-name {
+  display: block;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 180px;
+}
+
+.user-meta {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  font-weight: 600;
+  gap: 0.35rem;
+  line-height: 1.2;
+}
+
+.user-role-badge {
+  background: var(--soft-control);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  font-size: 0.62rem;
+  line-height: 1;
+  padding: 0.12rem 0.35rem;
 }
 
 .btn-login,
@@ -1279,6 +1406,7 @@ button:disabled {
 
   .sidebar-collapsed .sidebar .brand-mark + div,
   .sidebar-collapsed .nav-label,
+  .sidebar-collapsed .user-profile-text,
   .sidebar-collapsed .user-name,
   .sidebar-collapsed .login-label,
   .sidebar-collapsed .logout-label {
@@ -1397,6 +1525,26 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
+  }
+
+  .result-filter-panel {
+    padding: 0.65rem;
+  }
+
+  .result-filter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .result-filter-search,
+  .result-filter-field,
+  .result-filter-field select {
+    width: 100%;
+  }
+
+  .result-filter-clear {
+    width: 100%;
   }
 
   .data-table-wrap {

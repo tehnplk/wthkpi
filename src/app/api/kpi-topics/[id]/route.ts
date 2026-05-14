@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { canManageKpi } from "@/lib/kpi-access";
 
 export async function GET(
   _request: NextRequest,
@@ -51,6 +53,18 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const { assignments } = body;
+
+    const session = await getSession();
+    if (!(await canManageKpi(session, id))) {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไข KPI นี้" }, { status: 403 });
+    }
+
+    if (session?.role !== "admin") {
+      const restrictedFields = ["name", "kpi_type_id", "kpi_number", "note", "assignments"];
+      if (restrictedFields.some((field) => body[field] !== undefined)) {
+        return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไขข้อมูลตั้งค่า KPI" }, { status: 403 });
+      }
+    }
 
     const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) updateData.name = body.name;
