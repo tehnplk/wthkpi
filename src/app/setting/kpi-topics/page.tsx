@@ -419,7 +419,7 @@ export default function KpiTopicsPage() {
             <div className="form-group">
               <label htmlFor="topic-rate-cal-value">การคำนวณอัตรา</label>
               <div className="rate-formula-control">
-                <span className="rate-formula-text">(ผลงาน/เป้าหมาย) x</span>
+                <span className="rate-formula-text">(ผลงาน/จำนวนเป้าหมาย) x</span>
                 <input
                   id="topic-rate-cal-value"
                   type="number"
