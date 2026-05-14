@@ -7,7 +7,7 @@ interface ModalProps {
   children: ReactNode;
   isOpen: boolean;
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   onClose: () => void;
   size?: "sm" | "md" | "lg" | "xl";
 }
@@ -43,7 +43,7 @@ export function Modal({ children, isOpen, title, subtitle, onClose, size = "md" 
           <div>
             <h3 className="modal-title">{title}</h3>
             {subtitle && (
-              <p className="text-sm text-[var(--muted)] mt-0.5">{subtitle}</p>
+              <div className="text-sm text-[var(--muted)] mt-0.5">{subtitle}</div>
             )}
           </div>
           <button className="modal-close" type="button" onClick={onClose} aria-label="Close">

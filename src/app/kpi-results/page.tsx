@@ -105,6 +105,8 @@ export default function KpiResultsPage() {
   const [monKpiId, setMonKpiId] = useState<number>(0);
   const [monKpiName, setMonKpiName] = useState("");
   const [monKpiNumber, setMonKpiNumber] = useState("");
+  const [monKpiCriteria, setMonKpiCriteria] = useState("");
+  const [monKpiNote, setMonKpiNote] = useState("");
   const [monBudgetYear, setMonBudgetYear] = useState(thaiBudgetYear);
   const [monTarget, setMonTarget] = useState("");
   const [monRateCalValue, setMonRateCalValue] = useState("");
@@ -197,6 +199,9 @@ export default function KpiResultsPage() {
     setMonKpiId(kpiId);
     setMonKpiName(kpiName);
     setMonKpiNumber(kpiNumber || "");
+    const topic = topics.find((item) => item.id === kpiId);
+    setMonKpiCriteria(topic?.criteria || "");
+    setMonKpiNote(topic?.note || "");
     setMonError("");
     setMonLoading(true);
     setMonTopicStatus("pending");
@@ -223,6 +228,8 @@ export default function KpiResultsPage() {
       setMonValues(vals);
       setMonTarget(tg);
       setMonRateCalValue(topicData?.rate_cal_value != null ? String(topicData.rate_cal_value) : "");
+      setMonKpiCriteria(topicData?.criteria || "");
+      setMonKpiNote(topicData?.note || "");
       if (topicData?.status) setMonTopicStatus(topicData.status);
     } catch { /* ignore */ }
     setMonLoading(false);
@@ -233,6 +240,8 @@ export default function KpiResultsPage() {
     setMonKpiId(0);
     setMonKpiName("");
     setMonKpiNumber("");
+    setMonKpiCriteria("");
+    setMonKpiNote("");
     setMonTarget("");
     setMonRateCalValue("");
     setMonValues(Array(12).fill(""));
@@ -351,6 +360,14 @@ export default function KpiResultsPage() {
         onClose={closeMonForm}
         size="xl"
         title={`ตัวชี้วัดที่ ${monKpiNumber || "-"} - ${monKpiName}`}
+        subtitle={
+          monKpiCriteria || monKpiNote ? (
+            <div className="space-y-0.5">
+              {monKpiCriteria && <div>เกณฑ์การวัดผล : {monKpiCriteria}</div>}
+              {monKpiNote && <div className="text-xs font-normal text-[var(--muted)] opacity-75">หมายเหตุ : {monKpiNote}</div>}
+            </div>
+          ) : undefined
+        }
       >
         {monLoading ? (
           <div className="loading-state">กำลังโหลดข้อมูลรายเดือน...</div>
@@ -590,9 +607,6 @@ export default function KpiResultsPage() {
                       <div className="text-xs font-normal text-red-500/70 mt-0.5">
                         <strong>({row.topic_criteria})</strong>
                       </div>
-                    )}
-                    {row.topic_note && (
-                      <div className="text-xs font-normal text-gray-500 mt-0.5">{row.topic_note}</div>
                     )}
                     {departmentLabels(row.kpi_id).length > 0 && (
                       <div className="result-topic-departments">
