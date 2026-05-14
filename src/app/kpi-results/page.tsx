@@ -408,16 +408,19 @@ export default function KpiResultsPage() {
               <table className="data-table text-sm">
                 <thead>
                   <tr>
-                    <th className="w-20">
+                    <th className="w-20 kpi-mon-header-center" rowSpan={2}>
                       จำนวน
                       <br />
                       เป้าหมาย
                     </th>
+                    <th colSpan={MONTHS.length} className="kpi-mon-header-center">ผลงาน</th>
+                    <th className="w-24 kpi-mon-header-center" rowSpan={2}>รวม</th>
+                    <th className="w-20 kpi-mon-header-center" rowSpan={2}>อัตรา</th>
+                  </tr>
+                  <tr>
                     {MONTHS.map((m) => (
-                      <th key={m} className="w-16 text-center">{m}</th>
+                      <th key={m} className="w-16 kpi-mon-header-center">{m}</th>
                     ))}
-                    <th className="w-24 text-center">รวม</th>
-                    <th className="w-20 text-center">อัตรา</th>
                   </tr>
                 </thead>
                 <tbody>

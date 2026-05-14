@@ -880,6 +880,11 @@ button:disabled {
   padding: 0.85rem 1rem;
 }
 
+.data-table th.kpi-mon-header-center {
+  text-align: center;
+  vertical-align: middle;
+}
+
 .sortable-th {
   cursor: pointer;
   user-select: none;
