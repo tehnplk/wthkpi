@@ -7,6 +7,7 @@ const USER_SELECT = [
   "users.provider_id",
   "users.fullname",
   "users.username",
+  "users.role",
   "users.department_id",
   "users.is_active",
   "users.last_login",
@@ -45,6 +46,7 @@ export async function PUT(
     if (body.provider_id !== undefined) updateData.provider_id = body.provider_id;
     if (body.fullname !== undefined) updateData.fullname = body.fullname;
     if (body.username !== undefined) updateData.username = body.username;
+    if (body.role !== undefined) updateData.role = body.role === "admin" ? "admin" : "user";
     if (body.department_id !== undefined) updateData.department_id = body.department_id;
     if (body.is_active !== undefined) updateData.is_active = body.is_active;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Save, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { Pencil, Save, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { Department } from "@/app/models/common";
@@ -30,13 +30,17 @@ export default function UsersPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("id");
+  const [sortDir, setSortDir] = useState<SortDir | null>("asc");
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterRole, setFilterRole] = useState("");
 
   const [providerId, setProviderId] = useState("");
   const [fullname, setFullname] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
   const [departmentId, setDepartmentId] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -62,6 +66,7 @@ export default function UsersPage() {
     setFullname("");
     setUsername("");
     setPassword("");
+    setRole("user");
     setDepartmentId("");
     setIsActive(true);
   };
@@ -85,6 +90,7 @@ export default function UsersPage() {
     setFullname(user.fullname);
     setUsername(user.username || "");
     setPassword("");
+    setRole(user.role || "user");
     setDepartmentId(user.department_id ? String(user.department_id) : "");
     setIsActive(user.is_active);
     setError("");
@@ -95,6 +101,7 @@ export default function UsersPage() {
     const body: Record<string, unknown> = {
       provider_id: providerId.trim(),
       fullname: fullname.trim(),
+      role,
       department_id: departmentId ? Number(departmentId) : null,
       is_active: isActive,
     };
@@ -148,10 +155,23 @@ export default function UsersPage() {
     setSortDir(next.sortDir);
   };
 
+  const displayedUsers = users.filter((user) => {
+    const matchesDepartment = !filterDepartmentId || user.department_id === Number(filterDepartmentId);
+    const matchesStatus = !filterStatus || user.is_active === (filterStatus === "active");
+    const matchesRole = !filterRole || (user.role || "user") === filterRole;
+    return matchesDepartment && matchesStatus && matchesRole;
+  });
+
   const sortedUsers = useMemo(
-    () => applySort(users, sortBy, sortDir),
-    [users, sortBy, sortDir]
+    () => applySort(displayedUsers, sortBy, sortDir),
+    [displayedUsers, sortBy, sortDir]
   );
+
+  const clearFilters = () => {
+    setFilterDepartmentId("");
+    setFilterStatus("");
+    setFilterRole("");
+  };
 
   if (loading) {
     return <div className="loading-state">กำลังโหลดผู้ใช้...</div>;
@@ -172,11 +192,45 @@ export default function UsersPage() {
 
       {error && <div className="alert">{error}</div>}
 
-      <div className="table-toolbar">
-        <button type="button" className="btn btn-primary" onClick={openCreate}>
-          <UserPlus size={16} aria-hidden="true" />
-          เพิ่มผู้ใช้
-        </button>
+      <div className="user-filter-panel">
+        <div className="user-filter-grid">
+          <div className="filter-controls">
+            <label className="result-filter-field">
+              <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)}>
+                <option value="">ทุกแผนก/ฝ่าย/กลุ่มงาน</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.id}>{department.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="result-filter-field">
+              <select value={filterRole} onChange={(event) => setFilterRole(event.target.value)}>
+                <option value="">สิทธิใช้งาน</option>
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <label className="result-filter-field">
+              <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)}>
+                <option value="">ทุกสถานะ</option>
+                <option value="active">ใช้งาน</option>
+                <option value="inactive">ปิดใช้งาน</option>
+              </select>
+            </label>
+            {(filterDepartmentId || filterStatus || filterRole) && (
+              <button type="button" className="btn btn-soft result-filter-clear" onClick={clearFilters}>
+                <X size={14} aria-hidden="true" />
+                ล้าง
+              </button>
+            )}
+          </div>
+          <div className="filter-actions">
+            <button type="button" className="btn btn-primary topic-filter-create" onClick={openCreate}>
+              <UserPlus size={16} aria-hidden="true" />
+              เพิ่มผู้ใช้
+            </button>
+          </div>
+        </div>
       </div>
 
       <Modal
@@ -241,6 +295,13 @@ export default function UsersPage() {
               </select>
             </div>
             <div className="form-group">
+              <label htmlFor="role">Role</label>
+              <select id="role" value={role} onChange={(event) => setRole(event.target.value)}>
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label htmlFor="is-active">สถานะ</label>
               <select id="is-active" value={isActive ? "1" : "0"} onChange={(event) => setIsActive(event.target.value === "1")}>
                 <option value="1">ใช้งาน</option>
@@ -269,16 +330,17 @@ export default function UsersPage() {
               <th className="sortable-th" onClick={() => handleSort("username")}>ชื่อผู้ใช้</th>
               <th className="sortable-th" onClick={() => handleSort("fullname")}>ชื่อ-นามสกุล</th>
               <th className="sortable-th" onClick={() => handleSort("department_name")}>แผนก</th>
+              <th className="sortable-th" onClick={() => handleSort("role")}>สิทธิใช้งาน</th>
               <th>รหัสผ่าน</th>
               <th className="sortable-th" onClick={() => handleSort("is_active")}>สถานะ</th>
               <th className="sortable-th" onClick={() => handleSort("last_login")}>เข้าสู่ระบบล่าสุด</th>
-              <th className="w-36">จัดการ</th>
+              <th className="w-20">จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {sortedUsers.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={9} className="empty-cell">ยังไม่มีผู้ใช้</td>
+                <td colSpan={10} className="empty-cell">ยังไม่มีผู้ใช้</td>
               </tr>
             ) : (
               sortedUsers.map((user) => (
@@ -288,6 +350,11 @@ export default function UsersPage() {
                   <td data-label="ชื่อผู้ใช้">{user.username || "-"}</td>
                   <td data-label="ชื่อ-นามสกุล" className="font-semibold text-[#17211d]">{user.fullname}</td>
                   <td data-label="แผนก">{user.department_name || "-"}</td>
+                  <td data-label="Role">
+                    <span className={`pill ${user.role === "admin" ? "pill-kpi-t1" : "pill-muted"}`}>
+                      {user.role || "user"}
+                    </span>
+                  </td>
                   <td data-label="รหัสผ่าน">
                     <span className="text-[#8b9a94]">••••••</span>
                   </td>
@@ -302,18 +369,20 @@ export default function UsersPage() {
                       <button
                         type="button"
                         onClick={() => startEdit(user)}
-                        className="btn btn-soft min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-soft icon-action-btn"
+                        aria-label={`แก้ไข ${user.fullname}`}
+                        title="แก้ไข"
                       >
                         <Pencil size={13} aria-hidden="true" />
-                        แก้ไข
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(user.id)}
-                        className="btn btn-danger min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-danger icon-action-btn"
+                        aria-label={`ลบ ${user.fullname}`}
+                        title="ลบ"
                       >
                         <Trash2 size={13} aria-hidden="true" />
-                        ลบ
                       </button>
                     </div>
                   </td>

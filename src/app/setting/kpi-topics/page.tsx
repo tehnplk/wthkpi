@@ -1,6 +1,6 @@
 "use client";
 
-import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2 } from "lucide-react";
+import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { Department, KpiType } from "@/app/models/common";
@@ -44,8 +44,8 @@ export default function KpiTopicsPage() {
   const [filterTopic, setFilterTopic] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("id");
+  const [sortDir, setSortDir] = useState<SortDir | null>("asc");
 
   const fetchData = () => {
     fetch("/api/kpi-topics")
@@ -224,6 +224,18 @@ export default function KpiTopicsPage() {
     return applySort(withLabels, sortBy, sortDir);
   }, [displayedTopics, sortBy, sortDir]);
 
+  const activeFilterCount = [
+    filterTopic.trim(),
+    filterKpiTypeId,
+    filterDepartmentId,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setFilterTopic("");
+    setFilterKpiTypeId("");
+    setFilterDepartmentId("");
+  };
+
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
 
@@ -280,38 +292,49 @@ export default function KpiTopicsPage() {
 
       {error && <div className="alert">{error}</div>}
 
-      <div className="filter-bar topic-filter-bar">
-        <div className="filter-icon hidden sm:flex items-center text-[#64746d]">
-          <Search size={18} aria-hidden="true" />
+      <div className="topic-filter-panel">
+        <div className="topic-filter-grid">
+          <div className="filter-controls">
+            <label className="result-filter-search">
+              <Search size={17} aria-hidden="true" />
+              <input
+                type="search"
+                autoComplete="off"
+                value={filterTopic}
+                onChange={(event) => setFilterTopic(event.target.value)}
+                placeholder="พิมพ์ชื่อตัวชี้วัด..."
+              />
+            </label>
+            <label className="result-filter-field">
+              <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)}>
+                <option value="">ทุกประเภท</option>
+                {kpiTypes.map((type) => (
+                  <option key={type.id} value={type.id}>{type.type}</option>
+                ))}
+              </select>
+            </label>
+            <label className="result-filter-field result-filter-department">
+              <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)}>
+                <option value="">ทุกแผนก/ฝ่าย/กลุ่มงาน</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
+            </label>
+            {activeFilterCount > 0 && (
+              <button type="button" className="btn btn-soft result-filter-clear" onClick={clearFilters}>
+                <X size={14} aria-hidden="true" />
+                ล้าง
+              </button>
+            )}
+          </div>
+          <div className="filter-actions">
+            <button type="button" className="btn btn-primary topic-filter-create" onClick={openCreate}>
+              <Plus size={16} aria-hidden="true" />
+              เพิ่มตัวชี้วัด
+            </button>
+          </div>
         </div>
-        <label className="filter-search">
-          <input
-            type="search"
-            autoComplete="off"
-            value={filterTopic}
-            onChange={(event) => setFilterTopic(event.target.value)}
-            placeholder="พิมพ์ชื่อตัวชี้วัด..."
-          />
-        </label>
-        <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)} className="max-w-[160px]">
-          <option value="">ทุกประเภท</option>
-          {kpiTypes.map((type) => (
-            <option key={type.id} value={type.id}>{type.type}</option>
-          ))}
-        </select>
-        <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)} className="max-w-[220px]">
-          <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
-          {departments.map((dept) => (
-            <option key={dept.id} value={dept.id}>{dept.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="table-toolbar">
-        <button type="button" className="btn btn-primary" onClick={openCreate}>
-          <Plus size={16} aria-hidden="true" />
-          เพิ่มตัวชี้วัด
-        </button>
       </div>
 
       <Modal
@@ -445,6 +468,7 @@ export default function KpiTopicsPage() {
           <thead>
             <tr>
               <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#</th>
+              <th className="sortable-th" onClick={() => handleSort("kpi_type")}>ประเภท</th>
               <th className="sortable-th" onClick={() => handleSort("name")}>ตัวชี้วัด</th>
               <th className="sortable-th" onClick={() => handleSort("_deptLabel")}>หน่วยงานรับผิดชอบ</th>
               <th className="sortable-th" onClick={() => handleSort("_ownerLabel")}>ผู้รับผิดชอบ</th>
@@ -454,23 +478,23 @@ export default function KpiTopicsPage() {
           <tbody>
             {sortedTopics.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={5} className="empty-cell">ยังไม่มีตัวชี้วัด</td>
+                <td colSpan={6} className="empty-cell">ยังไม่มีตัวชี้วัด</td>
               </tr>
             ) : (
               sortedTopics.map((topic) => (
                 <tr key={topic.id}>
                   <td data-label="#" className="text-[#64746d] w-12">{topic.kpi_number || "-"}</td>
+                  <td data-label="ประเภท">
+                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type_id)}`}>{topic.kpi_type || "-"}</span>
+                  </td>
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
                     {topic.name}
-                    <div className="mt-1">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type_id)}`}>{topic.kpi_type || "-"}</span>
-                    </div>
                     {topic.note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>
                     )}
                   </td>
                   <td data-label="หน่วยงานรับผิดชอบ">
-                    <div className="flex flex-wrap gap-1">
+                    <div className="topic-department-list">
                       {(topic.departments || []).length === 0
                         ? "-"
                         : topic.departments.map((d) => (
@@ -479,27 +503,33 @@ export default function KpiTopicsPage() {
                     </div>
                   </td>
                   <td data-label="ผู้รับผิดชอบ">
-                    {(topic.departments || []).length === 0
-                      ? "-"
-                      : topic.departments.map((d) => d.user_owner || "-").join(", ")}
+                    <div className="topic-department-list">
+                      {(topic.departments || []).length === 0
+                        ? "-"
+                        : topic.departments.map((d) => (
+                            <span key={d.id}>{d.user_owner || "-"}</span>
+                          ))}
+                    </div>
                   </td>
                   <td data-label="จัดการ">
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => startEdit(topic)}
-                        className="btn btn-soft min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-soft icon-action-btn"
+                        aria-label={`แก้ไข ${topic.name}`}
+                        title="แก้ไข"
                       >
                         <Pencil size={13} aria-hidden="true" />
-                        แก้ไข
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(topic.id)}
-                        className="btn btn-danger min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-danger icon-action-btn"
+                        aria-label={`ลบ ${topic.name}`}
+                        title="ลบ"
                       >
                         <Trash2 size={13} aria-hidden="true" />
-                        ลบ
                       </button>
                     </div>
                   </td>

@@ -11,6 +11,7 @@ export async function GET() {
         "users.provider_id",
         "users.fullname",
         "users.username",
+        "users.role",
         "users.department_id",
         "users.is_active",
         "users.last_login",
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     const insertData: Record<string, unknown> = {
       provider_id: body.provider_id,
       fullname: body.fullname,
+      role: body.role === "admin" ? "admin" : "user",
       department_id: body.department_id || null,
       is_active: body.is_active ?? true,
     };
@@ -50,6 +52,7 @@ export async function POST(request: NextRequest) {
         "users.provider_id",
         "users.fullname",
         "users.username",
+        "users.role",
         "users.department_id",
         "users.is_active",
         "users.last_login",

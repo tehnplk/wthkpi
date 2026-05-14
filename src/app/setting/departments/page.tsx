@@ -15,8 +15,8 @@ export default function DepartmentsPage() {
   const [editName, setEditName] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [error, setError] = useState("");
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("id");
+  const [sortDir, setSortDir] = useState<SortDir | null>("asc");
 
   const fetchDepartments = () => {
     fetch("/api/departments")
@@ -205,18 +205,20 @@ export default function DepartmentsPage() {
                       <button
                         type="button"
                         onClick={() => startEdit(department)}
-                        className="btn btn-soft min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-soft icon-action-btn"
+                        aria-label={`แก้ไข ${department.name}`}
+                        title="แก้ไข"
                       >
                         <Pencil size={13} aria-hidden="true" />
-                        แก้ไข
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(department.id)}
-                        className="btn btn-danger min-h-8 px-3 py-1 text-xs"
+                        className="btn btn-danger icon-action-btn"
+                        aria-label={`ลบ ${department.name}`}
+                        title="ลบ"
                       >
                         <Trash2 size={13} aria-hidden="true" />
-                        ลบ
                       </button>
                     </div>
                   </td>

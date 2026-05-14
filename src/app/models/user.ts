@@ -3,6 +3,7 @@ export interface User {
   provider_id: string;
   fullname: string;
   username: string | null;
+  role: string;
   department_id: number | null;
   department_name: string | null;
   is_active: boolean;

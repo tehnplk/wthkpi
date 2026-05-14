@@ -24,6 +24,7 @@
   - when user ask to anotae you have to call cmd `playwright-cli --annotate`
   - Testing artifacts have to be placed in directory `.playwright-cli`
   - only run and test on port 3000 if port already in use `npx kill-port 3000` then run port 3000 again
+  - user for  test   admin , 112233
  
 ## Testing / Build / Run
   - Don't do this if user not ask.

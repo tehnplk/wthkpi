@@ -628,6 +628,22 @@ button:disabled {
   padding: 0.75rem;
 }
 
+.topic-filter-panel {
+  background: color-mix(in srgb, var(--panel) 92%, var(--panel-soft));
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+}
+
+.user-filter-panel {
+  background: color-mix(in srgb, var(--panel) 92%, var(--panel-soft));
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+}
+
 .result-filter-clear {
   align-self: end;
   min-height: 2rem;
@@ -637,9 +653,45 @@ button:disabled {
 
 .result-filter-grid {
   align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-start;
+}
+
+.topic-filter-grid {
+  align-items: flex-end;
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: minmax(18rem, 1fr) minmax(8rem, 10rem) minmax(13rem, 16rem) minmax(8rem, 10rem) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.user-filter-grid {
+  align-items: flex-end;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.filter-controls {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.filter-actions {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.topic-filter-create {
+  align-self: end;
+  min-height: 2.75rem;
 }
 
 .result-filter-search {
@@ -652,6 +704,7 @@ button:disabled {
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0 0.8rem;
+  width: 20rem;
 }
 
 .result-filter-search:focus-within {
@@ -669,6 +722,24 @@ button:disabled {
 
 .result-filter-field {
   display: grid;
+  width: 10rem;
+}
+
+.result-filter-department,
+.filter-controls .result-filter-field:first-of-type {
+  width: 16rem;
+}
+
+.topic-filter-grid .result-filter-search {
+  width: 21rem;
+}
+
+.topic-filter-grid .result-filter-field:not(.result-filter-department) {
+  width: 9rem;
+}
+
+.topic-filter-grid .result-filter-department {
+  width: 15rem;
 }
 
 .result-filter-field select {
@@ -698,6 +769,13 @@ button:disabled {
   font-weight: 550;
   line-height: 1;
   padding: 0.18rem 0.4rem;
+}
+
+.topic-department-list {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .kpi-results-table .result-type-cell .pill-kpi-type-badge {
@@ -732,6 +810,13 @@ button:disabled {
   padding: 0.55rem 0.9rem;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
   white-space: nowrap;
+}
+
+.icon-action-btn {
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  width: 2rem;
 }
 
 .btn:hover {
@@ -1531,19 +1616,42 @@ button:disabled {
     padding: 0.65rem;
   }
 
+  .topic-filter-panel {
+    padding: 0.65rem;
+  }
+
+  .user-filter-panel {
+    padding: 0.65rem;
+  }
+
   .result-filter-grid {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
   }
 
+  .topic-filter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .user-filter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
   .result-filter-search,
+  .filter-controls,
+  .filter-actions,
   .result-filter-field,
   .result-filter-field select {
     width: 100%;
   }
 
-  .result-filter-clear {
+  .result-filter-clear,
+  .topic-filter-create {
     width: 100%;
   }
 

@@ -98,8 +98,8 @@ export default function KpiResultsPage() {
   const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("kpi_id");
+  const [sortDir, setSortDir] = useState<SortDir | null>("asc");
 
   const [isMonFormOpen, setIsMonFormOpen] = useState(false);
   const [monKpiId, setMonKpiId] = useState<number>(0);
@@ -526,7 +526,7 @@ export default function KpiResultsPage() {
           </label>
           <label className="result-filter-field result-filter-department">
             <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)}>
-              <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
+              <option value="">ทุกแผนก/ฝ่าย/กลุ่มงาน</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>{dept.name}</option>
               ))}
@@ -619,10 +619,11 @@ export default function KpiResultsPage() {
                         <button
                           type="button"
                           onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
-                          className="btn btn-primary min-h-8 px-3 py-1 text-xs"
+                          className="btn btn-primary icon-action-btn"
+                          aria-label={`เพิ่มผล ${row.kpi_name}`}
+                          title="เพิ่มผล"
                         >
                           <CalendarPlus size={13} aria-hidden="true" />
-                          เพิ่ม
                         </button>
                       ) : (
                         <span className="text-xs text-[#8a9891]">-</span>

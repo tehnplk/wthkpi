@@ -69,8 +69,8 @@ export default function DashboardPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("kpi_id");
+  const [sortDir, setSortDir] = useState<SortDir | null>("asc");
 
   useEffect(() => {
     fetch("/api/departments")
@@ -134,7 +134,7 @@ export default function DashboardPage() {
           onChange={(event) => setFilterDepartmentId(event.target.value)}
           className="max-w-[220px]"
         >
-          <option value="">ทุกแผนก/ฝ่าย/กลุ่ม</option>
+          <option value="">ทุกแผนก/ฝ่าย/กลุ่มงาน</option>
           {departments.map((dept) => (
             <option key={dept.id} value={dept.id}>{dept.name}</option>
           ))}
