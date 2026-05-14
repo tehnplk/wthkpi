@@ -509,7 +509,9 @@ export default function KpiTopicsPage() {
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
                     {topic.name}
                     {topic.criteria && (
-                      <div className="text-xs font-normal text-red-500/70 mt-1">{topic.criteria}</div>
+                      <div className="text-xs font-normal text-red-500/70 mt-1">
+                        <strong>({topic.criteria})</strong>
+                      </div>
                     )}
                     {topic.note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>

@@ -587,7 +587,9 @@ export default function KpiResultsPage() {
                   <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                     {row.kpi_name}
                     {row.topic_criteria && (
-                      <div className="text-xs font-normal text-red-500/70 mt-0.5">{row.topic_criteria}</div>
+                      <div className="text-xs font-normal text-red-500/70 mt-0.5">
+                        <strong>({row.topic_criteria})</strong>
+                      </div>
                     )}
                     {row.topic_note && (
                       <div className="text-xs font-normal text-gray-500 mt-0.5">{row.topic_note}</div>
