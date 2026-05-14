@@ -408,7 +408,11 @@ export default function KpiResultsPage() {
               <table className="data-table text-sm">
                 <thead>
                   <tr>
-                    <th className="w-20">เป้าหมาย</th>
+                    <th className="w-20">
+                      จำนวน
+                      <br />
+                      เป้าหมาย
+                    </th>
                     {MONTHS.map((m) => (
                       <th key={m} className="w-16 text-center">{m}</th>
                     ))}
