@@ -13,6 +13,7 @@ export interface KpiResultRow {
   kpi_type_id: number | null;
   kpi_type: string | null;
   kpi_number: string | null;
+  topic_criteria: string | null;
   topic_note: string | null;
   target: number | null;
   result: number | null;

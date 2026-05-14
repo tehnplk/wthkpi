@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
       status: body.status || "pending",
       kpi_number: body.kpi_number || null,
       note: body.note || null,
+      criteria: body.criteria || null,
       rate_cal_value: body.rate_cal_value ?? null,
     });
 

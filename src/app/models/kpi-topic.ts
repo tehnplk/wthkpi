@@ -13,6 +13,7 @@ export interface KpiTopic {
   status: string;
   kpi_number: string | null;
   note: string | null;
+  criteria: string | null;
   rate_cal_value: number | null;
   departments: KpiTopicDepartment[];
 }

@@ -27,6 +27,7 @@ export default function KpiTopicsPage() {
   const [kpiTypeId, setKpiTypeId] = useState("");
   const [kpiNumber, setKpiNumber] = useState("");
   const [note, setNote] = useState("");
+  const [criteria, setCriteria] = useState("");
   const [rateCalValue, setRateCalValue] = useState("");
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -34,6 +35,7 @@ export default function KpiTopicsPage() {
   const [editKpiTypeId, setEditKpiTypeId] = useState("");
   const [editKpiNumber, setEditKpiNumber] = useState("");
   const [editNote, setEditNote] = useState("");
+  const [editCriteria, setEditCriteria] = useState("");
   const [editRateCalValue, setEditRateCalValue] = useState("");
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -80,6 +82,7 @@ export default function KpiTopicsPage() {
     setEditKpiTypeId("");
     setEditKpiNumber("");
     setEditNote("");
+    setEditCriteria("");
     setEditRateCalValue("");
     setEditAssignments([emptyAssignment()]);
   };
@@ -90,6 +93,7 @@ export default function KpiTopicsPage() {
     setKpiTypeId("");
     setKpiNumber("");
     setNote("");
+    setCriteria("");
     setRateCalValue("");
     setAssignments([emptyAssignment()]);
     setError("");
@@ -102,6 +106,7 @@ export default function KpiTopicsPage() {
     setEditKpiTypeId(topic.kpi_type_id ? String(topic.kpi_type_id) : "");
     setEditKpiNumber(topic.kpi_number || "");
     setEditNote(topic.note || "");
+    setEditCriteria(topic.criteria || "");
     setEditRateCalValue(topic.rate_cal_value != null ? String(topic.rate_cal_value) : "");
     const depts = topic.departments || [];
     setEditAssignments(
@@ -129,6 +134,7 @@ export default function KpiTopicsPage() {
         status: "pending",
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
+        criteria: criteria.trim() || null,
         rate_cal_value: rateCalValue ? Number(rateCalValue) : null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
@@ -164,6 +170,7 @@ export default function KpiTopicsPage() {
         kpi_type_id: editKpiTypeId ? Number(editKpiTypeId) : null,
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
+        criteria: editCriteria.trim() || null,
         rate_cal_value: editRateCalValue ? Number(editRateCalValue) : null,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
@@ -372,6 +379,18 @@ export default function KpiTopicsPage() {
           </div>
 
           <div className="form-group">
+            <label htmlFor="topic-criteria">เกณฑ์การวัดผล</label>
+            <input
+              id="topic-criteria"
+              type="text"
+              autoComplete="off"
+              maxLength={255}
+              value={isEditing ? editCriteria : criteria}
+              onChange={(event) => isEditing ? setEditCriteria(event.target.value) : setCriteria(event.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="topic-type">ประเภทตัวชี้วัด</label>
             <select
               id="topic-type"
@@ -489,6 +508,9 @@ export default function KpiTopicsPage() {
                   </td>
                   <td data-label="ชื่อ" className="font-semibold text-[#17211d]">
                     {topic.name}
+                    {topic.criteria && (
+                      <div className="text-xs font-normal text-red-500/70 mt-1">{topic.criteria}</div>
+                    )}
                     {topic.note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>
                     )}
