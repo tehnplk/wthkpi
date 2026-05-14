@@ -50,19 +50,13 @@ export async function GET(request: NextRequest) {
 
       applyDepartmentFilter(
         db("kpi_topic")
-          .leftJoin(aggSub(), function () {
-            this.on("kpi_topic.id", "=", "agg.kpi_id");
-          })
           .count("* as count")
-          .whereNotNull("agg.sum_result"),
+          .whereIn("kpi_topic.status", ["pass", "fail"]),
         departmentId
       ).first(),
 
       applyDepartmentFilter(
         db("kpi_topic")
-          .leftJoin(aggSub(), function () {
-            this.on("kpi_topic.id", "=", "agg.kpi_id");
-          })
           .select(db.raw(`${STATUS_EXPR} as status`))
           .count("* as count")
           .groupByRaw(STATUS_EXPR),
@@ -72,16 +66,15 @@ export async function GET(request: NextRequest) {
       applyDepartmentFilter(
         db("kpi_type")
           .leftJoin("kpi_topic", "kpi_type.id", "kpi_topic.kpi_type_id")
-          .leftJoin(aggSub(), function () {
-            this.on("kpi_topic.id", "=", "agg.kpi_id");
-          })
           .select("kpi_type.id", "kpi_type.type")
           .countDistinct("kpi_topic.id as total_topics")
-          .count("agg.kpi_id as total_results")
           .sum({
-            pass_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'pass' THEN 1 ELSE 0 END`),
-            fail_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'fail' THEN 1 ELSE 0 END`),
-            pending_count: db.raw(`CASE WHEN ${STATUS_EXPR} = 'pending' THEN 1 ELSE 0 END`),
+            total_results: db.raw(`CASE WHEN ${STATUS_EXPR} IN ('pass', 'fail') THEN 1 ELSE 0 END`),
+          })
+          .sum({
+            pass_count: db.raw(`CASE WHEN kpi_topic.id IS NOT NULL AND ${STATUS_EXPR} = 'pass' THEN 1 ELSE 0 END`),
+            fail_count: db.raw(`CASE WHEN kpi_topic.id IS NOT NULL AND ${STATUS_EXPR} = 'fail' THEN 1 ELSE 0 END`),
+            pending_count: db.raw(`CASE WHEN kpi_topic.id IS NOT NULL AND ${STATUS_EXPR} = 'pending' THEN 1 ELSE 0 END`),
           })
           .groupBy("kpi_type.id", "kpi_type.type")
           .orderBy("kpi_type.id", "asc"),

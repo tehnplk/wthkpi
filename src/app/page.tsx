@@ -144,7 +144,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="metric-card metric-card-topics">
           <div className="metric-head">
-            <p className="metric-label">หัวข้อ KPI</p>
+            <p className="metric-label">ตัวชี้วัด</p>
             <Target size={18} aria-hidden="true" />
           </div>
           <p className="metric-value">{data.totalTopics}</p>
@@ -186,13 +186,21 @@ export default function DashboardPage() {
             <div className="flex items-end justify-between gap-3 mt-3">
               <div>
                 <p className="metric-value">{summary.totalTopics}</p>
-                <p className="text-xs text-[#64746d] mt-1">หัวข้อ KPI</p>
+                <p className="text-xs text-[#64746d] mt-1">ตัวชี้วัด</p>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#17211d]">{summary.totalResults} ผลรายงาน</p>
-                <p className="text-xs text-[#64746d] mt-1">
-                  ผ่าน {summary.passCount} / ไม่ผ่าน {summary.failCount} / รอ {summary.pendingCount}
-                </p>
+              <div className="min-w-24 space-y-1">
+                <div className="flex items-center justify-between gap-3 rounded border border-[#22a35f] bg-[#d9f5e4] px-2 py-1 text-xs font-bold text-[#0b6f3c]">
+                  <span>ผ่าน</span>
+                  <span>{summary.passCount}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded border border-[#e05252] bg-[#ffe0df] px-2 py-1 text-xs font-bold text-[#b42323]">
+                  <span>ไม่ผ่าน</span>
+                  <span>{summary.failCount}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded border border-[#d39a12] bg-[#fff0b3] px-2 py-1 text-xs font-bold text-[#8a5700]">
+                  <span>รอ</span>
+                  <span>{summary.pendingCount}</span>
+                </div>
               </div>
             </div>
           </div>
