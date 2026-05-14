@@ -1,6 +1,6 @@
 "use client";
 
-import { MinusCircle, Pencil, Plus, Save, Search, Target, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MinusCircle, Pencil, Plus, Save, Search, Target, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { Department, KpiType } from "@/app/models/common";
@@ -48,6 +48,8 @@ export default function KpiTopicsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("id");
   const [sortDir, setSortDir] = useState<SortDir | null>("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = () => {
     fetch("/api/kpi-topics")
@@ -230,6 +232,11 @@ export default function KpiTopicsPage() {
     }));
     return applySort(withLabels, sortBy, sortDir);
   }, [displayedTopics, sortBy, sortDir]);
+  const totalPages = Math.max(1, Math.ceil(sortedTopics.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = sortedTopics.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = Math.min(currentPage * pageSize, sortedTopics.length);
+  const pagedTopics = sortedTopics.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const activeFilterCount = [
     filterTopic.trim(),
@@ -242,6 +249,14 @@ export default function KpiTopicsPage() {
     setFilterKpiTypeId("");
     setFilterDepartmentId("");
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [filterTopic, filterKpiTypeId, filterDepartmentId, pageSize]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const currentAssignments = isEditing ? editAssignments : assignments;
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
@@ -482,6 +497,43 @@ export default function KpiTopicsPage() {
         </form>
       </Modal>
 
+      <div className="pagination-bar">
+        <div className="pagination-summary">
+          {sortedTopics.length === 0 ? "0 items" : `${pageStart}-${pageEnd} of ${sortedTopics.length}`}
+        </div>
+        <div className="pagination-actions">
+          <label className="pagination-size">
+            Rows
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+              {[10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="btn btn-soft icon-action-btn"
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            disabled={currentPage <= 1}
+            aria-label="Previous page"
+            title="Previous page"
+          >
+            <ChevronLeft size={15} aria-hidden="true" />
+          </button>
+          <span className="pagination-page">{currentPage} / {totalPages}</span>
+          <button
+            type="button"
+            className="btn btn-soft icon-action-btn"
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            disabled={currentPage >= totalPages}
+            aria-label="Next page"
+            title="Next page"
+          >
+            <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
       <div className="panel data-table-wrap">
         <table className="data-table text-sm">
           <thead>
@@ -500,7 +552,7 @@ export default function KpiTopicsPage() {
                 <td colSpan={6} className="empty-cell">ยังไม่มีตัวชี้วัด</td>
               </tr>
             ) : (
-              sortedTopics.map((topic) => (
+              pagedTopics.map((topic) => (
                 <tr key={topic.id}>
                   <td data-label="#" className="text-[#64746d] w-12">{topic.kpi_number || "-"}</td>
                   <td data-label="ประเภท">

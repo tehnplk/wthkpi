@@ -2,6 +2,8 @@
 
 import {
   CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   ClipboardCheck,
   Clock3,
@@ -100,6 +102,8 @@ export default function KpiResultsPage() {
   const [filterTopic, setFilterTopic] = useState("");
   const [sortBy, setSortBy] = useState<string | null>("kpi_id");
   const [sortDir, setSortDir] = useState<SortDir | null>("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [isMonFormOpen, setIsMonFormOpen] = useState(false);
   const [monKpiId, setMonKpiId] = useState<number>(0);
@@ -168,6 +172,10 @@ export default function KpiResultsPage() {
     if (!loading) loadResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear, pageSize]);
 
   const departmentLabelByKpiId = useMemo(() => {
     const labels: Record<number, string[]> = {};
@@ -321,6 +329,11 @@ export default function KpiResultsPage() {
     () => applySort(results, sortBy, sortDir),
     [results, sortBy, sortDir]
   );
+  const totalPages = Math.max(1, Math.ceil(sortedResults.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = sortedResults.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = Math.min(currentPage * pageSize, sortedResults.length);
+  const pagedResults = sortedResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const showManageColumn = sortedResults.some((row) => canEditKpi(row.kpi_id));
   const activeFilterCount = [
     filterTopic.trim(),
@@ -335,6 +348,10 @@ export default function KpiResultsPage() {
     setFilterDepartmentId("");
     setFilterStatus("");
   };
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   if (loading) {
     return <div className="loading-state">กำลังโหลดผลงาน...</div>;
@@ -571,6 +588,43 @@ export default function KpiResultsPage() {
         </div>
       </div>
 
+      <div className="pagination-bar">
+        <div className="pagination-summary">
+          {sortedResults.length === 0 ? "0 items" : `${pageStart}-${pageEnd} of ${sortedResults.length}`}
+        </div>
+        <div className="pagination-actions">
+          <label className="pagination-size">
+            Rows
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+              {[10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="btn btn-soft icon-action-btn"
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            disabled={currentPage <= 1}
+            aria-label="Previous page"
+            title="Previous page"
+          >
+            <ChevronLeft size={15} aria-hidden="true" />
+          </button>
+          <span className="pagination-page">{currentPage} / {totalPages}</span>
+          <button
+            type="button"
+            className="btn btn-soft icon-action-btn"
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            disabled={currentPage >= totalPages}
+            aria-label="Next page"
+            title="Next page"
+          >
+            <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
       <div className="panel data-table-wrap">
         <table className="data-table kpi-results-table text-sm">
           <thead>
@@ -591,7 +645,7 @@ export default function KpiResultsPage() {
                 <td colSpan={showManageColumn ? 8 : 7} className="empty-cell">ไม่พบผลงาน</td>
               </tr>
             ) : (
-              sortedResults.map((row) => (
+              pagedResults.map((row) => (
                 <tr key={`topic-${row.kpi_id}`}>
                   <td data-label="#" className="result-number-cell text-[#64746d] w-12">
                     {row.kpi_number ? <span className="number-badge kpi-number-badge">{row.kpi_number}</span> : "-"}

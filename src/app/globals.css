@@ -879,6 +879,52 @@ button:disabled {
   overflow-x: auto;
 }
 
+.pagination-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.pagination-summary {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.pagination-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.pagination-size {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 650;
+  gap: 0.45rem;
+}
+
+.pagination-size select {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.55rem;
+  width: auto;
+}
+
+.pagination-page {
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 4.25rem;
+  text-align: center;
+}
+
 .data-table {
   min-width: 760px;
   width: 100%;
