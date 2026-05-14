@@ -178,6 +178,16 @@ button:disabled {
   width: 15rem;
 }
 
+.sidebar-shell {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.mobile-app-bar,
+.mobile-menu-backdrop {
+  display: none;
+}
+
 .sidebar-toggle {
   align-items: center;
   background: var(--panel);
@@ -1469,17 +1479,110 @@ button:disabled {
     min-width: 0;
   }
 
+  body.mobile-menu-open {
+    overflow: hidden;
+  }
+
   .app-shell {
     flex-direction: column;
+    min-height: 100dvh;
+    padding-top: 4.25rem;
+  }
+
+  .mobile-app-bar {
+    align-items: center;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    height: 4.25rem;
+    justify-content: space-between;
+    left: 0;
+    padding: 0.75rem 1rem;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 45;
+  }
+
+  .theme-toggle {
+    right: 4.75rem;
+    top: 1rem;
+    z-index: 46;
+  }
+
+  .mobile-brand {
+    align-items: center;
+    color: var(--foreground);
+    display: inline-flex;
+    font-size: 1rem;
+    font-weight: 800;
+    gap: 0.65rem;
+  }
+
+  .mobile-menu-button {
+    align-items: center;
+    background: var(--soft-control);
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    color: var(--foreground);
+    display: inline-flex;
+    height: 2.65rem;
+    justify-content: center;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+    width: 2.65rem;
+  }
+
+  .mobile-menu-button:hover {
+    background: var(--soft-control-hover);
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .mobile-menu-backdrop {
+    background: rgba(9, 20, 16, 0.42);
+    border: 0;
+    bottom: 0;
+    display: block;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    transition: opacity 180ms ease;
+    width: auto;
+    z-index: 35;
+  }
+
+  .mobile-menu-active .mobile-menu-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar-shell {
+    bottom: 0;
+    display: flex;
+    left: 0;
+    max-width: min(82vw, 21rem);
+    position: fixed;
+    top: 0;
+    transform: translateX(-102%);
+    transition: transform 210ms ease;
+    width: 19rem;
+    z-index: 50;
+  }
+
+  .mobile-menu-active .sidebar-shell {
+    transform: translateX(0);
   }
 
   .sidebar {
-    border-bottom: 1px solid var(--line);
-    border-right: 0;
-    position: sticky;
-    top: 0;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    box-shadow: 18px 0 38px rgba(9, 20, 16, 0.18);
+    height: 100%;
     width: 100%;
-    z-index: 20;
+    z-index: 50;
   }
 
   .sidebar-toggle {
@@ -1537,6 +1640,7 @@ button:disabled {
     flex-direction: column;
     gap: 0.25rem;
     overflow-x: visible;
+    overflow-y: auto;
     padding: 0.35rem 0.75rem 0.75rem;
   }
 
