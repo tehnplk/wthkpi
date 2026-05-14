@@ -7,6 +7,7 @@ import {
   CircleCheck,
   ClipboardCheck,
   Clock3,
+  FileSpreadsheet,
   Save,
   Search,
   TriangleAlert,
@@ -349,6 +350,16 @@ export default function KpiResultsPage() {
     setFilterStatus("");
   };
 
+  const exportExcel = () => {
+    const params = new URLSearchParams();
+    params.set("budget_year", String(monBudgetYear));
+    if (filterKpiTypeId) params.set("kpi_type_id", filterKpiTypeId);
+    if (filterDepartmentId) params.set("department_id", filterDepartmentId);
+    if (filterStatus) params.set("status", filterStatus);
+    if (filterTopic.trim()) params.set("topic", filterTopic.trim());
+    window.location.href = `/api/kpi-results/export?${params}`;
+  };
+
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
@@ -621,6 +632,16 @@ export default function KpiResultsPage() {
             title="Next page"
           >
             <ChevronRight size={15} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="btn btn-excel"
+            onClick={exportExcel}
+            disabled={results.length === 0}
+            title="Export Excel"
+          >
+            <FileSpreadsheet size={15} aria-hidden="true" />
+            Excel
           </button>
         </div>
       </div>

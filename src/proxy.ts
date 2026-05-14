@@ -12,6 +12,7 @@ const protectedPaths = ["/setting"];
 
 function isPublic(pathname: string, method: string): boolean {
   if (pathname === "/api/kpi-results" && method === "GET") return true;
+  if (pathname === "/api/kpi-results/export" && method === "GET") return true;
   if (
     ["/api/departments", "/api/kpi-types", "/api/kpi-topics"].includes(pathname) &&
     method === "GET"
