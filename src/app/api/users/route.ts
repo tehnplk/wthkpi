@@ -14,7 +14,7 @@ export async function GET() {
         "users.role",
         "users.department_id",
         "users.is_active",
-        "users.last_login",
+        db.raw("DATE_FORMAT(users.last_login, '%Y-%m-%d %H:%i:%s') as last_login"),
         "department.name as department_name"
       )
       .orderBy("users.id");
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         "users.role",
         "users.department_id",
         "users.is_active",
-        "users.last_login",
+        db.raw("DATE_FORMAT(users.last_login, '%Y-%m-%d %H:%i:%s') as last_login"),
         "department.name as department_name"
       )
       .where("users.id", id)

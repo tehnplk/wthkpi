@@ -10,7 +10,7 @@ const USER_SELECT = [
   "users.role",
   "users.department_id",
   "users.is_active",
-  "users.last_login",
+  db.raw("DATE_FORMAT(users.last_login, '%Y-%m-%d %H:%i:%s') as last_login"),
   "department.name as department_name",
 ];
 
