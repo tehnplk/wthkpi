@@ -18,7 +18,7 @@
 
 ## Test tool
   - start dev server using `bun dev`
-  - use `playwright-cli skill`
+  - use `playwright-cli skill` if user ask for test  or ask to use browser
   - access test url `http://localhost:3000` not `http://127.0.0.1:3000`
   - when start test  you have to call cmd `playwright-cli show`
   - when user ask to anotae you have to call cmd `playwright-cli --annotate`
