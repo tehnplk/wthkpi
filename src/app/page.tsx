@@ -220,7 +220,7 @@ export default function DashboardPage() {
             <tr>
               <th className="sortable-th w-12" onClick={() => handleSort("kpi_number")}>#</th>
               <th className="sortable-th" onClick={() => handleSort("kpi_name")}>KPI</th>
-              <th className="sortable-th" onClick={() => handleSort("target")}>จำนวนเป้าหมาย</th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>จำนวนกลุ่มเป้าหมาย</th>
               <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
                       <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
                     </div>
                   </td>
-                  <td data-label="จำนวนเป้าหมาย">
+                  <td data-label="จำนวนกลุ่มเป้าหมาย">
                     {r.target != null ? <span className="number-badge">{r.target}</span> : "-"}
                   </td>
                   <td data-label="ผลงาน">

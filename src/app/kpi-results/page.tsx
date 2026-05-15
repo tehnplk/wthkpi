@@ -418,7 +418,7 @@ export default function KpiResultsPage() {
                 <div className="form-group mb-0">
                   <label htmlFor="mon-rate-cal-value">การคำนวณอัตรา</label>
                   <div className="rate-formula-control">
-                    <span className="rate-formula-text">(ผลงาน/จำนวนเป้าหมาย) x</span>
+                    <span className="rate-formula-text">(ผลงาน/จำนวนกลุ่มเป้าหมาย) x</span>
                     <input
                       id="mon-rate-cal-value"
                       type="number"
@@ -454,7 +454,7 @@ export default function KpiResultsPage() {
                 <thead>
                   <tr>
                     <th className="w-20 kpi-mon-header-center" rowSpan={2}>
-                      จำนวนเป้าหมาย
+                      จำนวนกลุ่มเป้าหมาย
                     </th>
                     <th colSpan={MONTHS.length} className="kpi-mon-header-center">ผลงาน</th>
                     <th className="w-24 kpi-mon-header-center" rowSpan={2}>รวม</th>
@@ -469,7 +469,7 @@ export default function KpiResultsPage() {
                 <tbody>
                   <tr>
                     <td
-                      data-label="จำนวนเป้าหมาย"
+                      data-label="จำนวนกลุ่มเป้าหมาย"
                       className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
                       onClick={() => setEditCell(-1)}
                     >
@@ -653,7 +653,7 @@ export default function KpiResultsPage() {
               <th className="w-12 sortable-th" onClick={() => handleSort("kpi_number")}>#</th>
               <th className="w-32 sortable-th" onClick={() => handleSort("kpi_type")}>ประเภท</th>
               <th className="sortable-th" onClick={() => handleSort("kpi_name")}>ตัวชี้วัด</th>
-              <th className="sortable-th" onClick={() => handleSort("target")}>จำนวนเป้าหมาย</th>
+              <th className="sortable-th" onClick={() => handleSort("target")}>จำนวนกลุ่มเป้าหมาย</th>
               <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
@@ -689,7 +689,7 @@ export default function KpiResultsPage() {
                       </div>
                     )}
                   </td>
-                  <td data-label="จำนวนเป้าหมาย" className="result-value-cell">
+                  <td data-label="จำนวนกลุ่มเป้าหมาย" className="result-value-cell">
                     {row.target != null ? <span className="number-badge">{row.target}</span> : "-"}
                   </td>
                   <td data-label="ผลงาน" className="result-value-cell">
