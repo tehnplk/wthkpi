@@ -57,20 +57,20 @@ export function AppShell({
         onClick={() => setMobileMenuOpen(false)}
         aria-label="Close menu"
       />
-      <button
-        type="button"
-        className="sidebar-toggle"
-        onClick={() => setSidebarCollapsed((value) => !value)}
-        aria-label={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
-        aria-expanded={!sidebarCollapsed}
-        title={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
-      >
-        <ToggleIcon size={18} aria-hidden="true" />
-      </button>
       <div id="mobile-navigation" className="sidebar-shell">
+        <button
+          type="button"
+          className="sidebar-toggle"
+          onClick={() => setSidebarCollapsed((value) => !value)}
+          aria-label={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
+          aria-expanded={!sidebarCollapsed}
+          title={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
+        >
+          <ToggleIcon size={18} aria-hidden="true" />
+        </button>
         {sidebar}
       </div>
-      <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <main className="app-main min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="content-wrap">{children}</div>
       </main>
     </div>

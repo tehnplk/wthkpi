@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       flag_parent_or_child: isChildTopic ? "child" : "parent",
       parent_kpi: isChildTopic ? body.parent_kpi || null : null,
       flag_reporting: body.flag_reporting || "yes",
+      flag_show_guest: body.flag_show_guest || "yes",
     });
 
     if (Array.isArray(assignments) && assignments.length > 0) {

@@ -707,16 +707,18 @@ export default function KpiResultsPage() {
           >
             <ChevronRight size={15} aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            className="btn btn-excel"
-            onClick={exportExcel}
-            disabled={results.length === 0}
-            title="Export Excel"
-          >
-            <FileSpreadsheet size={15} aria-hidden="true" />
-            Excel
-          </button>
+          {currentUser && (
+            <button
+              type="button"
+              className="btn btn-excel"
+              onClick={exportExcel}
+              disabled={results.length === 0}
+              title="Export Excel"
+            >
+              <FileSpreadsheet size={15} aria-hidden="true" />
+              Excel
+            </button>
+          )}
         </div>
       </div>
 

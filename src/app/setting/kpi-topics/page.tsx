@@ -36,6 +36,7 @@ export default function KpiTopicsPage() {
   const [criteria, setCriteria] = useState("");
   const [rateCalValue, setRateCalValue] = useState("");
   const [flagReporting, setFlagReporting] = useState(true);
+  const [flagShowGuest, setFlagShowGuest] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
@@ -45,6 +46,7 @@ export default function KpiTopicsPage() {
   const [editCriteria, setEditCriteria] = useState("");
   const [editRateCalValue, setEditRateCalValue] = useState("");
   const [editFlagReporting, setEditFlagReporting] = useState(true);
+  const [editFlagShowGuest, setEditFlagShowGuest] = useState(true);
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [parentTopic, setParentTopic] = useState<Topic | null>(null);
@@ -96,6 +98,7 @@ export default function KpiTopicsPage() {
     setEditCriteria("");
     setEditRateCalValue("");
     setEditFlagReporting(true);
+    setEditFlagShowGuest(true);
     setEditAssignments([emptyAssignment()]);
     setParentTopic(null);
   };
@@ -110,6 +113,7 @@ export default function KpiTopicsPage() {
     setCriteria("");
     setRateCalValue("");
     setFlagReporting(true);
+    setFlagShowGuest(true);
     setAssignments([emptyAssignment()]);
     setError("");
     setIsFormOpen(true);
@@ -125,6 +129,7 @@ export default function KpiTopicsPage() {
     setCriteria("");
     setRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setFlagReporting(true);
+    setFlagShowGuest(topic.flag_show_guest !== "no");
     setAssignments(
       (topic.departments || []).length > 0
         ? topic.departments.map((d) => ({ deptId: d.id, userId: d.user_id || 0 }))
@@ -143,6 +148,7 @@ export default function KpiTopicsPage() {
     setEditCriteria(topic.criteria || "");
     setEditRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setEditFlagReporting(topic.flag_reporting !== "no");
+    setEditFlagShowGuest(topic.flag_show_guest !== "no");
     const depts = topic.departments || [];
     setEditAssignments(
       depts.length > 0
@@ -174,6 +180,7 @@ export default function KpiTopicsPage() {
         flag_parent_or_child: parentTopic ? "child" : "parent",
         parent_kpi: parentTopic?.id ?? null,
         flag_reporting: flagReporting ? "yes" : "no",
+        flag_show_guest: flagShowGuest ? "yes" : "no",
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -211,6 +218,7 @@ export default function KpiTopicsPage() {
         criteria: editCriteria.trim() || null,
         rate_cal_value: editRateCalValue ? Number.parseInt(editRateCalValue, 10) : null,
         flag_reporting: editFlagReporting ? "yes" : "no",
+        flag_show_guest: editFlagShowGuest ? "yes" : "no",
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -348,6 +356,8 @@ export default function KpiTopicsPage() {
   const setAssignmentsFn = isEditing ? setEditAssignments : setAssignments;
   const currentFlagReporting = isEditing ? editFlagReporting : flagReporting;
   const setFlagReportingFn = isEditing ? setEditFlagReporting : setFlagReporting;
+  const currentFlagShowGuest = isEditing ? editFlagShowGuest : flagShowGuest;
+  const setFlagShowGuestFn = isEditing ? setEditFlagShowGuest : setFlagShowGuest;
 
   const usersByDept = (deptId: number, assignedUserId: number) => {
     if (!deptId) return users;
@@ -627,6 +637,26 @@ export default function KpiTopicsPage() {
                   onChange={() => setFlagReportingFn(false)}
                 />
                 ไม่รายงานผล
+              </label>
+            </fieldset>
+            <fieldset className="report-choice" aria-label="สถานะการ Login">
+              <label className={currentFlagShowGuest ? "report-choice-option report-choice-option-active report-choice-option-reporting" : "report-choice-option"}>
+                <input
+                  type="radio"
+                  name="flag-show-guest"
+                  checked={currentFlagShowGuest}
+                  onChange={() => setFlagShowGuestFn(true)}
+                />
+                ไม่ต้อง Login
+              </label>
+              <label className={!currentFlagShowGuest ? "report-choice-option report-choice-option-active report-choice-option-not-reporting" : "report-choice-option"}>
+                <input
+                  type="radio"
+                  name="flag-show-guest"
+                  checked={!currentFlagShowGuest}
+                  onChange={() => setFlagShowGuestFn(false)}
+                />
+                ต้อง Login
               </label>
             </fieldset>
             <button type="submit" className="btn btn-primary">

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
@@ -11,6 +12,7 @@ function thaiBudgetYear(): number {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
     const { searchParams } = request.nextUrl;
     const kpiTypeId = searchParams.get("kpi_type_id");
     const departmentId = searchParams.get("department_id");
@@ -63,6 +65,7 @@ export async function GET(request: NextRequest) {
       });
     }
     if (topic) query = query.where("kpi_topic.name", "like", `%${topic}%`);
+    if (!session) query = query.where("kpi_topic.flag_show_guest", "yes");
     if (status) {
       query = query.whereRaw(
         `${STATUS_EXPR} = ?`,

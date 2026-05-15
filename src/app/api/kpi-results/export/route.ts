@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
@@ -88,6 +89,11 @@ async function applyNoReportingRowStyle(buffer: Buffer, rowNumbers: number[]): P
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "กรุณาเข้าสู่ระบบเพื่อ Export Excel" }, { status: 401 });
+    }
+
     const { searchParams } = request.nextUrl;
     const kpiTypeId = searchParams.get("kpi_type_id");
     const departmentId = searchParams.get("department_id");

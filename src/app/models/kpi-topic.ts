@@ -18,6 +18,7 @@ export interface KpiTopic {
   flag_parent_or_child: "parent" | "child" | null;
   parent_kpi: number | null;
   flag_reporting: "yes" | "no";
+  flag_show_guest: "yes" | "no";
   departments: KpiTopicDepartment[];
 }
 

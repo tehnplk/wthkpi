@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Knex } from "knex";
 import type { CountRow, StatusCountRow as StatusRow } from "@/app/models/common";
 import type { KpiTypeSummaryRow } from "@/app/models/dashboard";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
 
 function thaiBudgetYear(): number {
@@ -40,6 +41,7 @@ function applyDepartmentFilter<TRecord extends object, TResult>(
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
     const departmentId = request.nextUrl.searchParams.get("department_id");
     const by = thaiBudgetYear();
 
@@ -110,6 +112,9 @@ export async function GET(request: NextRequest) {
             "kpi_topic.note as topic_note"
           )
           .where(REPORTING_FILTER)
+          .modify((builder) => {
+            if (!session) builder.where("kpi_topic.flag_show_guest", "yes");
+          })
           .whereNotNull("agg.kpi_id")
           .orderByRaw("agg.sum_result / NULLIF(agg.target, 0) DESC")
           .limit(20),

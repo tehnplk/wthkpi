@@ -60,7 +60,7 @@ export async function PUT(
     }
 
     if (session?.role !== "admin") {
-      const restrictedFields = ["name", "kpi_type_id", "kpi_number", "note", "criteria", "assignments"];
+      const restrictedFields = ["name", "kpi_type_id", "kpi_number", "note", "criteria", "assignments", "flag_show_guest"];
       if (restrictedFields.some((field) => body[field] !== undefined)) {
         return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไขข้อมูลตั้งค่า KPI" }, { status: 403 });
       }
@@ -77,6 +77,7 @@ export async function PUT(
     if (body.flag_parent_or_child !== undefined) updateData.flag_parent_or_child = body.flag_parent_or_child || "parent";
     if (body.parent_kpi !== undefined) updateData.parent_kpi = body.parent_kpi || null;
     if (body.flag_reporting !== undefined) updateData.flag_reporting = body.flag_reporting || "yes";
+    if (body.flag_show_guest !== undefined) updateData.flag_show_guest = body.flag_show_guest || "yes";
 
     const updated = await db("kpi_topic").where({ id }).update(updateData);
     if (!updated) {
