@@ -174,10 +174,6 @@ export default function KpiResultsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear, pageSize]);
-
   const departmentLabelByKpiId = useMemo(() => {
     const labels: Record<number, string[]> = {};
     for (const topic of topics) {
@@ -326,10 +322,64 @@ export default function KpiResultsPage() {
     setSortDir(next.sortDir);
   };
 
-  const sortedResults = useMemo(
-    () => applySort(results, sortBy, sortDir),
-    [results, sortBy, sortDir]
-  );
+  const sortedResults = useMemo(() => {
+    const childrenByParent = new Map<number, Result[]>();
+    const rootResults: Result[] = [];
+    const childResults: Result[] = [];
+
+    for (const row of results) {
+      if (row.flag_parent_or_child === "child") {
+        childResults.push(row);
+      } else {
+        rootResults.push(row);
+      }
+    }
+
+    const rootIds = new Set(rootResults.map((row) => row.kpi_id));
+    const rootIdByNumber = new Map(
+      rootResults
+        .filter((row) => row.kpi_number)
+        .map((row) => [row.kpi_number as string, row.kpi_id])
+    );
+
+    for (const row of childResults) {
+      const numberParentId = row.kpi_number
+        ? rootIdByNumber.get(row.kpi_number.split(".").slice(0, -1).join("."))
+        : undefined;
+      const parentId = row.parent_kpi && rootIds.has(row.parent_kpi)
+        ? row.parent_kpi
+        : numberParentId;
+
+      if (parentId) {
+        const children = childrenByParent.get(parentId) || [];
+        children.push(row);
+        childrenByParent.set(parentId, children);
+      } else {
+        rootResults.push(row);
+      }
+    }
+
+    const sortedRoots = applySort(rootResults, sortBy, sortDir);
+    const groupedResults: Result[] = [];
+    const groupedIds = new Set<number>();
+
+    for (const row of sortedRoots) {
+      groupedResults.push(row);
+      groupedIds.add(row.kpi_id);
+
+      const sortedChildren = applySort(childrenByParent.get(row.kpi_id) || [], "kpi_number", "asc");
+      for (const child of sortedChildren) {
+        groupedResults.push(child);
+        groupedIds.add(child.kpi_id);
+      }
+    }
+
+    for (const row of applySort(results, sortBy, sortDir)) {
+      if (!groupedIds.has(row.kpi_id)) groupedResults.push(row);
+    }
+
+    return groupedResults;
+  }, [results, sortBy, sortDir]);
   const totalPages = Math.max(1, Math.ceil(sortedResults.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pageStart = sortedResults.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -348,6 +398,7 @@ export default function KpiResultsPage() {
     setFilterKpiTypeId("");
     setFilterDepartmentId("");
     setFilterStatus("");
+    setPage(1);
   };
 
   const exportExcel = () => {
@@ -359,10 +410,6 @@ export default function KpiResultsPage() {
     if (filterTopic.trim()) params.set("topic", filterTopic.trim());
     window.location.href = `/api/kpi-results/export?${params}`;
   };
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   if (loading) {
     return <div className="loading-state">กำลังโหลดผลงาน...</div>;
@@ -562,12 +609,21 @@ export default function KpiResultsPage() {
               type="search"
               autoComplete="off"
               value={filterTopic}
-              onChange={(event) => setFilterTopic(event.target.value)}
+              onChange={(event) => {
+                setFilterTopic(event.target.value);
+                setPage(1);
+              }}
               placeholder="พิมพ์ชื่อหัวข้อ KPI..."
             />
           </label>
           <label className="result-filter-field">
-            <select value={filterKpiTypeId} onChange={(event) => setFilterKpiTypeId(event.target.value)}>
+            <select
+              value={filterKpiTypeId}
+              onChange={(event) => {
+                setFilterKpiTypeId(event.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">ทุกประเภท</option>
               {kpiTypes.map((type) => (
                 <option key={type.id} value={type.id}>{type.type}</option>
@@ -575,7 +631,13 @@ export default function KpiResultsPage() {
             </select>
           </label>
           <label className="result-filter-field result-filter-department">
-            <select value={filterDepartmentId} onChange={(event) => setFilterDepartmentId(event.target.value)}>
+            <select
+              value={filterDepartmentId}
+              onChange={(event) => {
+                setFilterDepartmentId(event.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">ทุกแผนก/ฝ่าย/กลุ่มงาน</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>{dept.name}</option>
@@ -583,7 +645,13 @@ export default function KpiResultsPage() {
             </select>
           </label>
           <label className="result-filter-field">
-            <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)}>
+            <select
+              value={filterStatus}
+              onChange={(event) => {
+                setFilterStatus(event.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">ทุกสถานะ</option>
               <option value="pass">ผ่าน</option>
               <option value="fail">ไม่ผ่าน</option>
@@ -606,7 +674,13 @@ export default function KpiResultsPage() {
         <div className="pagination-actions">
           <label className="pagination-size">
             Rows
-            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+            >
               {[10, 25, 50, 100].map((size) => (
                 <option key={size} value={size}>{size}</option>
               ))}
@@ -666,9 +740,22 @@ export default function KpiResultsPage() {
                 <td colSpan={showManageColumn ? 8 : 7} className="empty-cell">ไม่พบผลงาน</td>
               </tr>
             ) : (
-              pagedResults.map((row) => (
-                <tr key={`topic-${row.kpi_id}`}>
-                  <td data-label="#" className="result-number-cell text-[#64746d] w-12">
+              pagedResults.map((row) => {
+                const isChildRow = row.flag_parent_or_child === "child";
+                const isReporting = row.flag_reporting !== "no";
+
+                const rowClasses = [
+                  isChildRow ? "kpi-result-row-child" : "",
+                  !isReporting ? "kpi-result-row-no-reporting" : "",
+                ].filter(Boolean).join(" ");
+
+                return (
+                <tr key={`topic-${row.kpi_id}`} className={rowClasses || undefined}>
+                  <td
+                    data-label="#"
+                    className={`result-number-cell text-[#64746d] w-12 ${isChildRow ? "result-number-cell-child" : ""}`}
+                  >
+                    {isChildRow && <span className="kpi-result-child-marker" aria-hidden="true" />}
                     {row.kpi_number ? <span className="number-badge kpi-number-badge">{row.kpi_number}</span> : "-"}
                   </td>
                   <td data-label="ประเภท" className="result-type-cell">
@@ -690,37 +777,40 @@ export default function KpiResultsPage() {
                     )}
                   </td>
                   <td data-label="จำนวนกลุ่มเป้าหมาย" className="result-value-cell">
-                    {row.target != null ? <span className="number-badge">{row.target}</span> : "-"}
+                    {isReporting && row.target != null ? <span className="number-badge">{row.target}</span> : "-"}
                   </td>
                   <td data-label="ผลงาน" className="result-value-cell">
-                    {row.result != null ? <span className="number-badge">{row.result}</span> : "-"}
+                    {isReporting && row.result != null ? <span className="number-badge">{row.result}</span> : "-"}
                   </td>
                   <td data-label="อัตรา" className="result-value-cell">
-                    {row.percent != null ? (
+                    {isReporting && row.percent != null ? (
                       <span className={`number-badge number-badge-rate ${rateBadgeClass(row.status)}`}>
                         {row.percent}
                       </span>
                     ) : "-"}
                   </td>
                   <td data-label="สถานะ" className="result-status-cell">
-                    <span className={`pill ${statusColors[row.status || "pending"] || "pill-muted"}`}>
-                      {(() => {
-                        const rowStatus = row.status || "pending";
-                        const StatusIcon = statusIcons[rowStatus as keyof typeof statusIcons] || Clock3;
-                        return <StatusIcon size={13} aria-hidden="true" />;
-                      })()}
-                      {statusLabels[row.status || "pending"] || row.status}
-                    </span>
+                    {isReporting ? (
+                      <span className={`pill ${statusColors[row.status || "pending"] || "pill-muted"}`}>
+                        {(() => {
+                          const rowStatus = row.status || "pending";
+                          const StatusIcon = statusIcons[rowStatus as keyof typeof statusIcons] || Clock3;
+                          return <StatusIcon size={13} aria-hidden="true" />;
+                        })()}
+                        {statusLabels[row.status || "pending"] || row.status}
+                      </span>
+                    ) : "-"}
                   </td>
                   {showManageColumn && (
-                    <td data-label="จัดการ">
+                    <td data-label="จัดการ" className="result-action-cell">
                       {canEditKpi(row.kpi_id) ? (
                         <button
                           type="button"
                           onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
                           className="btn btn-primary icon-action-btn"
+                          disabled={!isReporting}
                           aria-label={`เพิ่มผล ${row.kpi_name}`}
-                          title="เพิ่มผล"
+                          title={isReporting ? "เพิ่มผล" : "ไม่ต้องรายงานผล"}
                         >
                           <CalendarPlus size={13} aria-hidden="true" />
                         </button>
@@ -730,7 +820,8 @@ export default function KpiResultsPage() {
                     </td>
                   )}
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

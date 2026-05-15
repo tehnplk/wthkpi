@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import db from "@/lib/db";
 
@@ -14,6 +15,75 @@ function thaiBudgetYear(): number {
   const now = new Date();
   const y = now.getFullYear() + 543;
   return now.getMonth() >= 9 ? y + 1 : y;
+}
+
+function getXmlCount(xml: string, tagName: string): number {
+  const match = xml.match(new RegExp(`<${tagName} count="(\\d+)"`));
+  return match ? Number(match[1]) : 0;
+}
+
+function setCellStyleInRow(rowXml: string, styleIndex: number): string {
+  return rowXml.replace(/<c([^>]*?)>/g, (cellTag, attributes: string) => {
+    if (/\ss="\d+"/.test(attributes)) {
+      return cellTag.replace(/\ss="\d+"/, ` s="${styleIndex}"`);
+    }
+
+    return `<c${attributes} s="${styleIndex}">`;
+  });
+}
+
+async function applyNoReportingRowStyle(buffer: Buffer, rowNumbers: number[]): Promise<Buffer> {
+  if (rowNumbers.length === 0) return buffer;
+
+  const zip = await JSZip.loadAsync(buffer);
+  const stylesFile = zip.file("xl/styles.xml");
+  const sheetFile = zip.file("xl/worksheets/sheet1.xml");
+
+  if (!stylesFile || !sheetFile) return buffer;
+
+  let stylesXml = await stylesFile.async("string");
+  const fontId = getXmlCount(stylesXml, "fonts");
+  const fillId = getXmlCount(stylesXml, "fills");
+  const styleIndex = getXmlCount(stylesXml, "cellXfs");
+
+  stylesXml = stylesXml
+    .replace(
+      /<fonts count="(\d+)">/,
+      (_match, count) => `<fonts count="${Number(count) + 1}">`
+    )
+    .replace(
+      "</fonts>",
+      '<font><sz val="12"/><color rgb="FF738079"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts>'
+    )
+    .replace(
+      /<fills count="(\d+)">/,
+      (_match, count) => `<fills count="${Number(count) + 1}">`
+    )
+    .replace(
+      "</fills>",
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F5F4"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    )
+    .replace(
+      /<cellXfs count="(\d+)">/,
+      (_match, count) => `<cellXfs count="${Number(count) + 1}">`
+    )
+    .replace(
+      "</cellXfs>",
+      `<xf numFmtId="0" fontId="${fontId}" fillId="${fillId}" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs>`
+    );
+
+  zip.file("xl/styles.xml", stylesXml);
+
+  const rowSet = new Set(rowNumbers);
+  let sheetXml = await sheetFile.async("string");
+  sheetXml = sheetXml.replace(/<row\b[^>]*\br="(\d+)"[^>]*>[\s\S]*?<\/row>/g, (rowXml, rowNumber) => {
+    if (!rowSet.has(Number(rowNumber))) return rowXml;
+    return setCellStyleInRow(rowXml, styleIndex);
+  });
+  zip.file("xl/worksheets/sheet1.xml", sheetXml);
+
+  const styledBuffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+  return Buffer.from(styledBuffer);
 }
 
 export async function GET(request: NextRequest) {
@@ -51,7 +121,8 @@ export async function GET(request: NextRequest) {
         "kpi_topic.note as topic_note",
         "kpi_topic.kpi_type_id",
         "kpi_type.type as kpi_type",
-        "kpi_topic.kpi_number"
+        "kpi_topic.kpi_number",
+        "kpi_topic.flag_reporting"
       );
 
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
@@ -86,18 +157,24 @@ export async function GET(request: NextRequest) {
       departmentsByKpiId[link.kpi_id].push(link.department_name);
     }
 
-    const rows = results.map((row) => ({
-      "ลำดับ": row.kpi_number || "-",
-      "ประเภท": row.kpi_type || "-",
-      "ตัวชี้วัด": row.kpi_name,
-      "เกณฑ์การวัดผล": row.topic_criteria || "-",
-      "หมายเหตุ": row.topic_note || "-",
-      "ฝ่าย": (departmentsByKpiId[row.kpi_id] || []).join(", ") || "-",
-      "จำนวนกลุ่มเป้าหมาย": row.target ?? "-",
-      "ผลงาน": row.result ?? "-",
-      "อัตรา": row.percent ?? "-",
-      "สถานะ": statusLabels[row.status || "pending"] || row.status || "-",
-    }));
+    const noReportingRowNumbers: number[] = [];
+    const rows = results.map((row, index) => {
+      const isReporting = row.flag_reporting !== "no";
+      if (!isReporting) noReportingRowNumbers.push(index + 2);
+
+      return {
+        "ลำดับ": row.kpi_number || "-",
+        "ประเภท": row.kpi_type || "-",
+        "ตัวชี้วัด": row.kpi_name,
+        "เกณฑ์การวัดผล": row.topic_criteria || "-",
+        "หมายเหตุ": row.topic_note || "-",
+        "ฝ่าย": (departmentsByKpiId[row.kpi_id] || []).join(", ") || "-",
+        "จำนวนกลุ่มเป้าหมาย": isReporting ? row.target ?? "-" : "-",
+        "ผลงาน": isReporting ? row.result ?? "-" : "-",
+        "อัตรา": isReporting ? row.percent ?? "-" : "-",
+        "สถานะ": isReporting ? statusLabels[row.status || "pending"] || row.status || "-" : "-",
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(rows, {
       header: [
@@ -129,8 +206,9 @@ export async function GET(request: NextRequest) {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "KPI Results");
     const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+    const styledBuffer = await applyNoReportingRowStyle(buffer, noReportingRowNumbers);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(styledBuffer), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": `attachment; filename="kpi-results-${budgetYear}.xlsx"`,

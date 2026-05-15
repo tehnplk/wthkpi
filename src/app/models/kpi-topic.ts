@@ -15,6 +15,9 @@ export interface KpiTopic {
   note: string | null;
   criteria: string | null;
   rate_cal_value: number | null;
+  flag_parent_or_child: "parent" | "child" | null;
+  parent_kpi: number | null;
+  flag_reporting: "yes" | "no";
   departments: KpiTopicDepartment[];
 }
 

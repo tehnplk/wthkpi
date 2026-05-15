@@ -46,6 +46,9 @@ export async function GET(request: NextRequest) {
         "kpi_topic.kpi_type_id",
         "kpi_type.type as kpi_type",
         "kpi_topic.kpi_number",
+        "kpi_topic.flag_parent_or_child",
+        "kpi_topic.parent_kpi",
+        "kpi_topic.flag_reporting",
         "kpi_topic.criteria as topic_criteria",
         "kpi_topic.note as topic_note"
       );

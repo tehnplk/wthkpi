@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { assignments } = body;
+    const isChildTopic = body.flag_parent_or_child === "child";
 
     const [id] = await db("kpi_topic").insert({
       name: body.name,
@@ -72,6 +73,9 @@ export async function POST(request: NextRequest) {
       note: body.note || null,
       criteria: body.criteria || null,
       rate_cal_value: body.rate_cal_value ?? null,
+      flag_parent_or_child: isChildTopic ? "child" : "parent",
+      parent_kpi: isChildTopic ? body.parent_kpi || null : null,
+      flag_reporting: body.flag_reporting || "yes",
     });
 
     if (Array.isArray(assignments) && assignments.length > 0) {

@@ -6,7 +6,7 @@ import {
   CircleCheck,
   Clock3,
   FileClock,
-  Gauge,
+  ListChecks,
   Target,
   TriangleAlert,
 } from "lucide-react";
@@ -151,21 +151,10 @@ export default function DashboardPage() {
         </div>
         <div className="metric-card metric-card-results">
           <div className="metric-head">
-            <p className="metric-label">ผลรายงานทั้งหมด</p>
+            <p className="metric-label">รายงานผลแล้ว</p>
             <FileClock size={18} aria-hidden="true" />
           </div>
           <p className="metric-value">{data.totalResults}</p>
-        </div>
-        <div className="metric-card metric-card-status">
-          <div className="metric-head">
-            <p className="metric-label">ผ่าน / ไม่ผ่าน</p>
-            <Gauge size={18} aria-hidden="true" />
-          </div>
-          <p className="metric-value">
-            <span className="text-[#14764a]">{data.passCount}</span>
-            <span className="text-[#9aa8a2] mx-1">/</span>
-            <span className="text-[#c24141]">{data.failCount}</span>
-          </p>
         </div>
         <div className="metric-card metric-card-pending">
           <div className="metric-head">
@@ -174,11 +163,28 @@ export default function DashboardPage() {
           </div>
           <p className="metric-value text-[#9a6a12]">{data.pendingCount}</p>
         </div>
+        <div className="metric-card metric-card-status">
+          <div className="metric-head">
+            <p className="metric-label">ผ่าน / ไม่ผ่าน</p>
+            <ListChecks size={18} aria-hidden="true" />
+          </div>
+          <p className="metric-value">
+            <span className="text-[#14764a]">{data.passCount}</span>
+            <span className="text-[#9aa8a2] mx-1">/</span>
+            <span className="text-[#c24141]">{data.failCount}</span>
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
         {(data.kpiTypeSummary || []).map((summary) => (
-          <div key={summary.id} className={metricTypeCardClass(summary.id)}>
+          <div
+            key={summary.id}
+            className={`${metricTypeCardClass(summary.id)} ${
+              summary.type === "คุณภาพ" ? "metric-card-type-quality" : ""
+            } ${summary.type === "ยุทธศาสตร์" ? "metric-card-type-strategy" : ""
+            }`}
+          >
             <div className="metric-head">
               <p className="metric-label">{summary.type}</p>
               <Target size={18} aria-hidden="true" />

@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   const sidebar = (
     <aside className="sidebar shrink-0 flex flex-col">
-      <div className="px-4 py-4 border-b border-[var(--line)]">
+      <div className="sidebar-brand px-4 py-4 border-b border-[var(--line)]">
         <div className="flex items-center gap-3">
           <span className="brand-mark">
             <BarChart3 size={20} aria-hidden="true" />
@@ -39,7 +39,7 @@ export default function RootLayout({
         </div>
       </div>
       <SidebarNav />
-      <div className="px-3 pb-4">
+      <div className="sidebar-user px-3 pb-4">
         <UserMenu />
       </div>
     </aside>

@@ -74,10 +74,19 @@ export async function PUT(
     if (body.criteria !== undefined) updateData.criteria = body.criteria || null;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.rate_cal_value !== undefined) updateData.rate_cal_value = body.rate_cal_value;
+    if (body.flag_parent_or_child !== undefined) updateData.flag_parent_or_child = body.flag_parent_or_child || "parent";
+    if (body.parent_kpi !== undefined) updateData.parent_kpi = body.parent_kpi || null;
+    if (body.flag_reporting !== undefined) updateData.flag_reporting = body.flag_reporting || "yes";
 
     const updated = await db("kpi_topic").where({ id }).update(updateData);
     if (!updated) {
       return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
+    }
+
+    if (body.kpi_type_id !== undefined) {
+      await db("kpi_topic")
+        .where({ parent_kpi: id, flag_parent_or_child: "child" })
+        .update({ kpi_type_id: updateData.kpi_type_id });
     }
 
     if (assignments !== undefined) {
@@ -108,6 +117,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const child = await db("kpi_topic")
+      .select("id")
+      .where({ parent_kpi: id, flag_parent_or_child: "child" })
+      .first();
+
+    if (child) {
+      return NextResponse.json({ error: "ไม่สามารถลบตัวชี้วัดหลักที่มีตัวชี้วัดย่อยได้" }, { status: 409 });
+    }
+
     const deleted = await db("kpi_topic").where({ id }).delete();
     if (!deleted) {
       return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });

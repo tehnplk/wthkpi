@@ -22,6 +22,7 @@ function aggSub() {
 }
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
+const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes" };
 
 function applyDepartmentFilter<TRecord extends object, TResult>(
   query: Knex.QueryBuilder<TRecord, TResult>,
@@ -44,13 +45,16 @@ export async function GET(request: NextRequest) {
 
     const [totalTopics, totalResults, statusCounts, kpiTypeSummary, recentResults] = await Promise.all([
       applyDepartmentFilter(
-        db("kpi_topic").count("* as count"),
+        db("kpi_topic")
+          .count("* as count")
+          .where(REPORTING_FILTER),
         departmentId
       ).first(),
 
       applyDepartmentFilter(
         db("kpi_topic")
           .count("* as count")
+          .where(REPORTING_FILTER)
           .whereIn("kpi_topic.status", ["pass", "fail"]),
         departmentId
       ).first(),
@@ -59,13 +63,17 @@ export async function GET(request: NextRequest) {
         db("kpi_topic")
           .select(db.raw(`${STATUS_EXPR} as status`))
           .count("* as count")
+          .where(REPORTING_FILTER)
           .groupByRaw(STATUS_EXPR),
         departmentId
       ) as unknown as Promise<StatusRow[]>,
 
       applyDepartmentFilter(
         db("kpi_type")
-          .leftJoin("kpi_topic", "kpi_type.id", "kpi_topic.kpi_type_id")
+          .leftJoin("kpi_topic", function () {
+            this.on("kpi_type.id", "=", "kpi_topic.kpi_type_id")
+              .andOn("kpi_topic.flag_reporting", "=", db.raw("?", ["yes"]));
+          })
           .select("kpi_type.id", "kpi_type.type")
           .countDistinct("kpi_topic.id as total_topics")
           .sum({
@@ -101,6 +109,7 @@ export async function GET(request: NextRequest) {
             "kpi_topic.kpi_number",
             "kpi_topic.note as topic_note"
           )
+          .where(REPORTING_FILTER)
           .whereNotNull("agg.kpi_id")
           .orderByRaw("agg.sum_result / NULLIF(agg.target, 0) DESC")
           .limit(20),
