@@ -456,7 +456,7 @@ export default function KpiTopicsPage() {
           <div className="filter-actions">
             <button type="button" className="btn btn-primary topic-filter-create" onClick={openCreate}>
               <Plus size={16} aria-hidden="true" />
-              เพิ่มตัวชี้วัด
+              เพิ่มตัวชี้วัดหลัก
             </button>
           </div>
         </div>
