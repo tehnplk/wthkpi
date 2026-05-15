@@ -13,7 +13,7 @@ function formatThaiDateTime(value: string | null) {
 
   const normalized = /[zZ]|[+-]\d{2}:\d{2}$/.test(value)
     ? value
-    : value.replace(" ", "T") + "+07:00";
+    : value.replace(" ", "T") + "Z";
   const date = new Date(normalized);
 
   if (Number.isNaN(date.getTime())) return value;
