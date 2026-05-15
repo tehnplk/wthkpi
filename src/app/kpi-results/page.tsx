@@ -73,6 +73,8 @@ function formatDecimal(value: string | number | null) {
   return numberValue.toFixed(2);
 }
 
+const integerInputValue = (value: string) => value.replace(/\D/g, "");
+
 const MONTHS = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย."];
 
 interface CurrentUser {
@@ -470,10 +472,13 @@ export default function KpiResultsPage() {
                     <input
                       id="mon-rate-cal-value"
                       type="number"
-                      step="0.01"
+                      step="1"
+                      min="0"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       autoComplete="off"
                       value={monRateCalValue}
-                      onChange={(e) => setMonRateCalValue(e.target.value)}
+                      onChange={(e) => setMonRateCalValue(integerInputValue(e.target.value))}
                       className="rate-formula-input"
                       aria-label="ตัวเลขสำหรับคำนวณอัตรา"
                     />
