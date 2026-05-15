@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   Save,
   Search,
+  Trash2,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -481,16 +482,17 @@ export default function KpiResultsPage() {
               </div>
               <div className="toggle-group">
                 {[
-                  { key: "pending", label: "รอดำเนินการ" },
-                  { key: "fail", label: "ไม่ผ่าน" },
-                  { key: "pass", label: "ผ่าน" },
-                ].map(({ key, label }) => (
+                  { key: "pending", label: "รอดำเนินการ", icon: Clock3 },
+                  { key: "fail", label: "ไม่ผ่าน", icon: TriangleAlert },
+                  { key: "pass", label: "ผ่าน", icon: CircleCheck },
+                ].map(({ key, label, icon: ToggleStatusIcon }) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setMonTopicStatus(key)}
                     className={`toggle-btn ${monTopicStatus === key ? `toggle-active toggle-${key}` : ""}`}
                   >
+                    <ToggleStatusIcon size={13} aria-hidden="true" />
                     {label}
                   </button>
                 ))}
@@ -584,17 +586,23 @@ export default function KpiResultsPage() {
               </table>
             </div>
             <div className="modal-actions modal-actions-center mt-4">
-              <div className="flex items-center gap-2">
-                <button type="button" className="btn btn-danger" onClick={clearMonResults}>
-                  ล้างผลงาน
-                </button>
-                <button type="button" className="btn btn-soft" onClick={closeMonForm}>
-                  ยกเลิก
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} aria-hidden="true" />
-                  บันทึก
-                </button>
+              <div className="kpi-result-modal-actions">
+                <div className="kpi-result-modal-actions-start">
+                  <button type="button" className="btn btn-danger" onClick={clearMonResults}>
+                    <Trash2 size={16} aria-hidden="true" />
+                    ล้างผลงาน
+                  </button>
+                </div>
+                <div className="kpi-result-modal-actions-end">
+                  <button type="button" className="btn btn-soft" onClick={closeMonForm}>
+                    <X size={16} aria-hidden="true" />
+                    ยกเลิก
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} aria-hidden="true" />
+                    บันทึก
+                  </button>
+                </div>
               </div>
             </div>
           </form>

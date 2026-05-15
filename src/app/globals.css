@@ -1268,15 +1268,20 @@ button:disabled {
 }
 
 .toggle-btn {
+  align-items: center;
   background: var(--panel);
   border: none;
   border-right: 1px solid var(--line);
   color: var(--muted);
   cursor: pointer;
+  display: inline-flex;
   font-size: 0.75rem;
   font-weight: 500;
+  gap: 0.3rem;
+  justify-content: center;
   padding: 0.45rem 0.85rem;
   transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
 .toggle-btn:last-child {
@@ -1501,6 +1506,23 @@ button:disabled {
 
 .modal-actions-center {
   justify-content: center;
+}
+
+.kpi-result-modal-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  width: min(100%, 32rem);
+}
+
+.kpi-result-modal-actions-start,
+.kpi-result-modal-actions-end {
+  align-items: center;
+  display: flex;
+}
+
+.kpi-result-modal-actions-end {
+  gap: 0.75rem;
 }
 
 .login-page {
@@ -2036,6 +2058,24 @@ button:disabled {
   .kpi-topic-modal-actions .report-choice-option {
     flex: 1;
     min-width: 0;
+  }
+
+  .kpi-result-modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .kpi-result-modal-actions-start,
+  .kpi-result-modal-actions-end {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .kpi-result-modal-actions .btn {
+    width: 100%;
   }
 
   .filter-bar input,
