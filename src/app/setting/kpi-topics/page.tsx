@@ -636,7 +636,7 @@ export default function KpiTopicsPage() {
                   checked={!currentFlagReporting}
                   onChange={() => setFlagReportingFn(false)}
                 />
-                ไม่รายงานผล
+                ไม่ต้องรายงานผล
               </label>
             </fieldset>
             <fieldset className="report-choice" aria-label="สถานะการ Login">
