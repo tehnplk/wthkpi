@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { BarChart3, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function AppShell({
   children,
@@ -15,6 +15,7 @@ export function AppShell({
   const isLogin = pathname === "/login";
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => setMobileMenuOpen(false));
@@ -31,8 +32,32 @@ export function AppShell({
 
   const ToggleIcon = sidebarCollapsed ? ChevronRight : ChevronLeft;
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    const isHorizontalSwipe = Math.abs(deltaX) > 64 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4;
+
+    if (!isHorizontalSwipe) return;
+    if (!mobileMenuOpen && start.x <= 32 && deltaX > 0) setMobileMenuOpen(true);
+    if (mobileMenuOpen && deltaX < 0) setMobileMenuOpen(false);
+  };
+
   return (
-    <div className={`app-shell flex ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${mobileMenuOpen ? "mobile-menu-active" : ""}`}>
+    <div
+      className={`app-shell flex ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${mobileMenuOpen ? "mobile-menu-active" : ""}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <header className="mobile-app-bar">
         <div className="mobile-brand">
           <span className="brand-mark">
@@ -58,6 +83,14 @@ export function AppShell({
         aria-label="Close menu"
       />
       <div id="mobile-navigation" className="sidebar-shell">
+        <button
+          type="button"
+          className="mobile-panel-close"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Close menu"
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
         <button
           type="button"
           className="sidebar-toggle"
