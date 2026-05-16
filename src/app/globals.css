@@ -1893,6 +1893,12 @@ button:disabled {
     color: var(--accent-strong);
   }
 
+  .mobile-menu-active .mobile-app-bar button,
+  body.mobile-menu-open .theme-toggle {
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .mobile-panel-close {
     align-items: center;
     background: var(--soft-control);
