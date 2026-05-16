@@ -82,7 +82,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    queueMicrotask(() => setLoading(true));
     const params = new URLSearchParams();
     if (filterDepartmentId) params.set("department_id", filterDepartmentId);
     const query = params.toString();
@@ -221,7 +221,7 @@ export default function DashboardPage() {
           </h3>
         </div>
         <div className="data-table-wrap">
-        <table className="data-table text-sm">
+        <table className="data-table dashboard-recent-table text-sm">
           <thead>
             <tr>
               <th className="sortable-th w-12" onClick={() => handleSort("kpi_number")}>#</th>
@@ -240,12 +240,15 @@ export default function DashboardPage() {
             ) : (
               sortedRecent.map((r) => (
                 <tr key={r.kpi_id}>
-                  <td data-label="#" className="w-12">
+                  <td data-label="#" className="dashboard-recent-number-cell w-12">
                     {r.kpi_number ? <span className="number-badge kpi-number-badge">{r.kpi_number}</span> : "-"}
+                    <div className="dashboard-recent-type-under-number dashboard-recent-type-mobile">
+                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
+                    </div>
                   </td>
-                  <td data-label="KPI" className="font-semibold text-[#17211d]">
+                  <td data-label="KPI" className="dashboard-recent-kpi-cell font-semibold text-[#17211d]">
                     {r.kpi_name}
-                    <div className="mt-1">
+                    <div className="mt-1 dashboard-recent-type-desktop">
                       <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
                     </div>
                   </td>

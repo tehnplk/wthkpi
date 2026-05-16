@@ -453,7 +453,7 @@ export default function KpiResultsPage() {
           <form onSubmit={handleMonSave} className="login-form">
             {monError && <div className="alert">{monError}</div>}
             <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-3">
+              <div className="kpi-result-modal-meta flex items-center gap-3">
                 <div className="form-group mb-0">
                   <label htmlFor="mon-budget-year">ปีงบประมาณ</label>
                   <input
@@ -485,7 +485,7 @@ export default function KpiResultsPage() {
                   </div>
                 </div>
               </div>
-              <div className="toggle-group">
+              <div className="toggle-group kpi-result-status-toggle-desktop">
                 {[
                   { key: "pending", label: "รอดำเนินการ", icon: Clock3 },
                   { key: "fail", label: "ไม่ผ่าน", icon: TriangleAlert },
@@ -593,17 +593,33 @@ export default function KpiResultsPage() {
             <div className="modal-actions modal-actions-center mt-4">
               <div className="kpi-result-modal-actions">
                 <div className="kpi-result-modal-actions-start">
-                  <button type="button" className="btn btn-danger" onClick={clearMonResults}>
+                  <div className="toggle-group kpi-result-status-toggle-mobile">
+                    {(["pending", "fail", "pass"] as const).map((key) => {
+                      const ToggleStatusIcon = statusIcons[key];
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setMonTopicStatus(key)}
+                          className={`toggle-btn ${monTopicStatus === key ? `toggle-active toggle-${key}` : ""}`}
+                        >
+                          <ToggleStatusIcon size={13} aria-hidden="true" />
+                          {statusLabels[key]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button type="button" className="btn btn-danger kpi-result-clear-btn" onClick={clearMonResults}>
                     <Trash2 size={16} aria-hidden="true" />
                     ล้างผลงาน
                   </button>
                 </div>
                 <div className="kpi-result-modal-actions-end">
-                  <button type="button" className="btn btn-soft" onClick={closeMonForm}>
+                  <button type="button" className="btn btn-soft kpi-result-cancel-btn" onClick={closeMonForm}>
                     <X size={16} aria-hidden="true" />
                     ยกเลิก
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary kpi-result-save-btn">
                     <Save size={16} aria-hidden="true" />
                     บันทึก
                   </button>
@@ -746,7 +762,7 @@ export default function KpiResultsPage() {
               <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
-              {showManageColumn && <th className="w-28">จัดการ</th>}
+              {showManageColumn && <th className="w-28">บันทึกผลงาน</th>}
             </tr>
           </thead>
           <tbody>
@@ -772,9 +788,14 @@ export default function KpiResultsPage() {
                   >
                     {isChildRow && <span className="kpi-result-child-marker" aria-hidden="true" />}
                     {row.kpi_number ? <span className="number-badge kpi-number-badge">{row.kpi_number}</span> : "-"}
+                    <span className={`pill pill-kpi-type-badge result-type-mobile ${kpiTypeBadgeClass(row.kpi_type_id)}`}>
+                      <span className="pill-kpi-type-label">{row.kpi_type || "-"}</span>
+                    </span>
                   </td>
                   <td data-label="ประเภท" className="result-type-cell">
-                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(row.kpi_type_id)}`}>{row.kpi_type || "-"}</span>
+                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(row.kpi_type_id)}`}>
+                      <span className="pill-kpi-type-label">{row.kpi_type || "-"}</span>
+                    </span>
                   </td>
                   <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                     {row.kpi_name}
@@ -824,10 +845,11 @@ export default function KpiResultsPage() {
                           onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
                           className="btn btn-primary icon-action-btn"
                           disabled={!isReporting}
-                          aria-label={`เพิ่มผล ${row.kpi_name}`}
-                          title={isReporting ? "เพิ่มผล" : "ไม่ต้องรายงานผล"}
+                          aria-label={`บันทึกผลงาน ${row.kpi_name}`}
+                          title={isReporting ? "บันทึกผลงาน" : "ไม่ต้องรายงานผล"}
                         >
-                          <CalendarPlus size={13} aria-hidden="true" />
+                          <CalendarPlus className="result-action-icon" size={13} aria-hidden="true" />
+                          <span className="result-action-mobile-text">บันทึกผลงาน</span>
                         </button>
                       ) : (
                         <span className="text-xs text-[#8a9891]">-</span>
