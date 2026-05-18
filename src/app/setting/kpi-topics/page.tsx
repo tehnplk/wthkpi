@@ -256,10 +256,12 @@ export default function KpiTopicsPage() {
   };
 
   const isEditing = editingId !== null;
+  const topicFilter = filterTopic.trim().toLowerCase();
   const displayedTopics = topics.filter((topic) => {
     const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
     const matchesDepartment = !filterDepartmentId || (topic.departments || []).some((dept) => dept.id === Number(filterDepartmentId));
-    const matchesTopic = !filterTopic.trim() || topic.name.toLowerCase().includes(filterTopic.trim().toLowerCase());
+    const matchesTopic = !topicFilter || [topic.name, topic.kpi_number]
+      .some((value) => (value || "").toLowerCase().includes(topicFilter));
     return matchesType && matchesDepartment && matchesTopic;
   });
 
@@ -425,7 +427,7 @@ export default function KpiTopicsPage() {
                   setFilterTopic(event.target.value);
                   setPage(1);
                 }}
-                placeholder="พิมพ์ชื่อตัวชี้วัด..."
+                placeholder="พิมพ์ชื่อหรือเลข KPI..."
               />
             </label>
             <label className="result-filter-field">

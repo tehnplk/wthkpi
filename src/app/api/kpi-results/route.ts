@@ -64,7 +64,13 @@ export async function GET(request: NextRequest) {
           .where("kpi_topic_department.department_id", departmentId);
       });
     }
-    if (topic) query = query.where("kpi_topic.name", "like", `%${topic}%`);
+    if (topic) {
+      const topicPattern = `%${topic}%`;
+      query = query.where(function () {
+        this.where("kpi_topic.name", "like", topicPattern)
+          .orWhere("kpi_topic.kpi_number", "like", topicPattern);
+      });
+    }
     if (!session) query = query.where("kpi_topic.flag_show_guest", "yes");
     if (status) {
       query = query.whereRaw(

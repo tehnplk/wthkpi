@@ -642,7 +642,7 @@ export default function KpiResultsPage() {
                 setFilterTopic(event.target.value);
                 setPage(1);
               }}
-              placeholder="พิมพ์ชื่อหัวข้อ KPI..."
+              placeholder="พิมพ์ชื่อหรือเลข KPI..."
             />
           </label>
           <label className="result-filter-field">
