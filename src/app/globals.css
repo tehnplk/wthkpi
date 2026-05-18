@@ -940,6 +940,20 @@ button:disabled {
   padding: 0.24rem 0.48rem;
 }
 
+.kpi-results-table .kpi-result-row-child .kpi-number-badge {
+  background: color-mix(in srgb, #c0cecf 50%, #fff);
+  border-color: color-mix(in srgb, #c0cecf 50%, #fff);
+  box-shadow: none;
+  color: color-mix(in srgb, #25383a 70%, #fff);
+  font-weight: 400;
+}
+
+.kpi-results-table .kpi-result-row-child .result-type-cell .pill-kpi-type-badge,
+.kpi-results-table .kpi-result-row-child .result-type-mobile.pill-kpi-type-badge,
+.kpi-results-table .kpi-result-row-child .pill-kpi-type-label {
+  font-weight: 400 !important;
+}
+
 .kpi-results-table .kpi-result-row-child .text-xs {
   font-size: 0.68rem;
 }
