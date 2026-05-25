@@ -103,7 +103,7 @@ export function AppShell({
         </button>
         {sidebar}
       </div>
-      <main className="app-main min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <main className="app-main min-w-0 flex-1 overflow-auto mx-5 mt-5">
         <div className="content-wrap">{children}</div>
       </main>
     </div>

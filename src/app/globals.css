@@ -184,7 +184,7 @@ button:disabled {
   height: 100vh;
   overflow: hidden;
   transition: width 180ms ease, min-width 180ms ease, padding 180ms ease;
-  width: 15rem;
+  width: fit-content;
 }
 
 .sidebar-shell {
@@ -463,13 +463,7 @@ button:disabled {
 
 .content-wrap {
   margin: 0 auto;
-  max-width: 1180px;
-  transition: max-width 180ms ease;
   width: 100%;
-}
-
-.sidebar-collapsed .content-wrap {
-  max-width: none;
 }
 
 .sidebar-collapsed .app-main {
@@ -1187,7 +1181,7 @@ button:disabled {
   border-bottom: 0;
 }
 
-.data-table tbody tr:hover td {
+.data-table tbody tr:not(.inline-edit-row):hover td {
   background: var(--hover);
 }
 
@@ -1195,6 +1189,30 @@ button:disabled {
   color: var(--muted);
   padding: 2.25rem 1rem !important;
   text-align: center;
+}
+
+.inline-edit-row td {
+  padding: 0.25rem 0.5rem;
+  background: var(--soft-control);
+}
+
+.inline-edit-row input,
+.inline-edit-row select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  background: var(--panel);
+  color: var(--foreground);
+}
+
+.inline-edit-row input:focus,
+.inline-edit-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .pill {
