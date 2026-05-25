@@ -1,8 +1,7 @@
 "use client";
 
-import { Pencil, Save, Trash2, UserPlus, UsersRound, X } from "lucide-react";
+import { Check, Pencil, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Modal } from "@/components/Modal";
 import type { Department } from "@/app/models/common";
 import type { User } from "@/app/models/user";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
@@ -44,7 +43,7 @@ export default function UsersPage() {
   const [departmentId, setDepartmentId] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const fetchData = () => {
     Promise.all([
@@ -71,8 +70,7 @@ export default function UsersPage() {
     setIsActive(true);
   };
 
-  const closeForm = () => {
-    setIsFormOpen(false);
+  const cancelEdit = () => {
     setEditingId(null);
     resetForm();
   };
@@ -81,10 +79,16 @@ export default function UsersPage() {
     setEditingId(null);
     resetForm();
     setError("");
-    setIsFormOpen(true);
+    setIsAdding(true);
+  };
+
+  const cancelAdd = () => {
+    setIsAdding(false);
+    resetForm();
   };
 
   const startEdit = (user: User) => {
+    setIsAdding(false);
     setEditingId(user.id);
     setProviderId(user.provider_id);
     setFullname(user.fullname);
@@ -94,7 +98,6 @@ export default function UsersPage() {
     setDepartmentId(user.department_id ? String(user.department_id) : "");
     setIsActive(user.is_active);
     setError("");
-    setIsFormOpen(true);
   };
 
   const buildPayload = () => {
@@ -124,7 +127,12 @@ export default function UsersPage() {
     });
 
     if (res.ok) {
-      closeForm();
+      if (editingId) {
+        cancelEdit();
+      } else {
+        setIsAdding(false);
+        resetForm();
+      }
       fetchData();
       notifySuccess(editingId ? "บันทึกผู้ใช้สำเร็จ" : "เพิ่มผู้ใช้สำเร็จ");
     } else {
@@ -233,161 +241,176 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <Modal
-        isOpen={isFormOpen}
-        onClose={closeForm}
-        size="lg"
-        title={editingId ? "แก้ไขผู้ใช้" : "เพิ่มผู้ใช้"}
-      >
-        <form onSubmit={handleSave} className="login-form">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="form-group">
-              <label htmlFor="provider-id">รหัส Provider</label>
-              <input
-                id="provider-id"
-                type="text"
-                autoComplete="off"
-                value={providerId}
-                onChange={(event) => setProviderId(event.target.value)}
-                autoFocus
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="fullname">ชื่อ-นามสกุล</label>
-              <input
-                id="fullname"
-                type="text"
-                autoComplete="off"
-                value={fullname}
-                onChange={(event) => setFullname(event.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="username">ชื่อผู้ใช้</label>
-              <input
-                id="username"
-                type="text"
-                autoComplete="off"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">{editingId ? "รหัสผ่านใหม่" : "รหัสผ่าน"}</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="off"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder={editingId ? "เว้นว่างถ้าไม่เปลี่ยน" : ""}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="department">แผนก</label>
-              <select id="department" value={departmentId} onChange={(event) => setDepartmentId(event.target.value)}>
-                <option value="">ไม่มีแผนก</option>
-                {departments.map((department) => (
-                  <option key={department.id} value={department.id}>{department.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="role">Role</label>
-              <select id="role" value={role} onChange={(event) => setRole(event.target.value)}>
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="is-active">สถานะ</label>
-              <select id="is-active" value={isActive ? "1" : "0"} onChange={(event) => setIsActive(event.target.value === "1")}>
-                <option value="1">ใช้งาน</option>
-                <option value="0">ปิดใช้งาน</option>
-              </select>
-            </div>
-          </div>
-          <div className="modal-actions">
-            <button type="button" className="btn btn-soft" onClick={closeForm}>
-              ยกเลิก
-            </button>
-            <button type="submit" className="btn btn-primary">
-              <Save size={16} aria-hidden="true" />
-              บันทึก
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <form id="user-form" onSubmit={handleSave} />
 
       <div className="panel data-table-wrap">
         <table className="data-table text-sm">
           <thead>
             <tr>
               <th className="w-16 sortable-th" onClick={() => handleSort("id")}>ID</th>
-              <th className="sortable-th" onClick={() => handleSort("provider_id")}>รหัส Provider</th>
-              <th className="sortable-th" onClick={() => handleSort("username")}>ชื่อผู้ใช้</th>
               <th className="sortable-th" onClick={() => handleSort("fullname")}>ชื่อ-นามสกุล</th>
               <th className="sortable-th" onClick={() => handleSort("department_name")}>แผนก</th>
-              <th className="sortable-th" onClick={() => handleSort("role")}>สิทธิใช้งาน</th>
+              <th className="sortable-th" onClick={() => handleSort("provider_id")}>รหัส Provider</th>
+              <th className="sortable-th" onClick={() => handleSort("username")}>ชื่อผู้ใช้</th>
               <th>รหัสผ่าน</th>
+              <th className="sortable-th" onClick={() => handleSort("role")}>สิทธิใช้งาน</th>
               <th className="sortable-th" onClick={() => handleSort("is_active")}>สถานะ</th>
               <th className="sortable-th" onClick={() => handleSort("last_login")}>เข้าสู่ระบบล่าสุด</th>
               <th className="w-20">จัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {sortedUsers.length === 0 ? (
-              <tr className="empty-row">
-                <td colSpan={10} className="empty-cell">ยังไม่มีผู้ใช้</td>
-              </tr>
-            ) : (
-              sortedUsers.map((user) => (
-                <tr key={user.id}>
-                  <td data-label="ID" className="text-[#64746d]">{user.id}</td>
-                  <td data-label="รหัส Provider" className="font-semibold text-[#17211d]">{user.provider_id}</td>
-                  <td data-label="ชื่อผู้ใช้">{user.username || "-"}</td>
-                  <td data-label="ชื่อ-นามสกุล" className="font-semibold text-[#17211d]">{user.fullname}</td>
-                  <td data-label="แผนก">{user.department_name || "-"}</td>
-                  <td data-label="Role">
-                    <span className={`pill ${user.role === "admin" ? "pill-kpi-t1" : "pill-muted"}`}>
-                      {user.role || "user"}
-                    </span>
+            {isAdding && (
+                <tr className="inline-edit-row">
+                  <td className="text-[#64746d]"></td>
+                  <td>
+                    <input type="text" form="user-form" value={fullname} onChange={(e) => setFullname(e.target.value)} autoFocus required />
                   </td>
-                  <td data-label="รหัสผ่าน">
-                    <span className="text-[#8b9a94]">••••••</span>
+                  <td>
+                    <select form="user-form" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+                      <option value="">ไม่มีแผนก</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
                   </td>
-                  <td data-label="สถานะ">
-                    <span className={`pill ${user.is_active ? "pill-pass" : "pill-muted"}`}>
-                      {user.is_active ? "ใช้งาน" : "ปิดใช้งาน"}
-                    </span>
+                  <td>
+                    <input type="text" form="user-form" value={providerId} onChange={(e) => setProviderId(e.target.value)} required />
                   </td>
-                  <td data-label="เข้าสู่ระบบล่าสุด" className="text-[#64746d] whitespace-nowrap">{formatThaiDateTime(user.last_login)}</td>
-                  <td data-label="จัดการ">
+                  <td>
+                    <input type="text" form="user-form" value={username} onChange={(e) => setUsername(e.target.value)} />
+                  </td>
+                  <td>
+                    <input type="password" form="user-form" placeholder="รหัสผ่าน" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </td>
+                  <td>
+                    <select form="user-form" value={role} onChange={(e) => setRole(e.target.value)}>
+                      <option value="user">user</option>
+                      <option value="admin">admin</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select form="user-form" value={isActive ? "1" : "0"} onChange={(e) => setIsActive(e.target.value === "1")}>
+                      <option value="1">ใช้งาน</option>
+                      <option value="0">ปิดใช้งาน</option>
+                    </select>
+                  </td>
+                  <td></td>
+                  <td>
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => startEdit(user)}
-                        className="btn btn-soft icon-action-btn"
-                        aria-label={`แก้ไข ${user.fullname}`}
-                        title="แก้ไข"
-                      >
-                        <Pencil size={13} aria-hidden="true" />
+                      <button type="submit" form="user-form" className="btn btn-primary icon-action-btn" title="บันทึก">
+                        <Check size={13} aria-hidden="true" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(user.id)}
-                        className="btn btn-danger icon-action-btn"
-                        aria-label={`ลบ ${user.fullname}`}
-                        title="ลบ"
-                      >
-                        <Trash2 size={13} aria-hidden="true" />
+                      <button type="button" className="btn btn-soft icon-action-btn" onClick={cancelAdd} title="ยกเลิก">
+                        <X size={13} aria-hidden="true" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))
+            )}
+            {sortedUsers.length === 0 && !isAdding ? (
+              <tr className="empty-row">
+                <td colSpan={10} className="empty-cell">ยังไม่มีผู้ใช้</td>
+              </tr>
+            ) : (
+              sortedUsers.map((user) =>
+                user.id === editingId ? (
+                    <tr key={user.id} className="inline-edit-row">
+                      <td className="text-[#64746d]">{user.id}</td>
+                      <td>
+                        <input type="text" form="user-form" value={fullname} onChange={(e) => setFullname(e.target.value)} autoFocus required />
+                      </td>
+                      <td>
+                        <select form="user-form" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+                          <option value="">ไม่มีแผนก</option>
+                          {departments.map((d) => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" form="user-form" value={providerId} onChange={(e) => setProviderId(e.target.value)} required />
+                      </td>
+                      <td>
+                        <input type="text" form="user-form" value={username} onChange={(e) => setUsername(e.target.value)} />
+                      </td>
+                      <td>
+                        <input type="password" form="user-form" placeholder="เว้นว่างถ้าไม่เปลี่ยน" value={password} onChange={(e) => setPassword(e.target.value)} />
+                      </td>
+                      <td>
+                        <select form="user-form" value={role} onChange={(e) => setRole(e.target.value)}>
+                          <option value="user">user</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select form="user-form" value={isActive ? "1" : "0"} onChange={(e) => setIsActive(e.target.value === "1")}>
+                          <option value="1">ใช้งาน</option>
+                          <option value="0">ปิดใช้งาน</option>
+                        </select>
+                      </td>
+                      <td className="text-[#64746d] whitespace-nowrap">{formatThaiDateTime(user.last_login)}</td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button type="submit" form="user-form" className="btn btn-primary icon-action-btn" title="บันทึก">
+                            <Check size={13} aria-hidden="true" />
+                          </button>
+                          <button type="button" className="btn btn-soft icon-action-btn" onClick={cancelEdit} title="ยกเลิก">
+                            <X size={13} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                ) : (
+                  <tr key={user.id} onClick={() => startEdit(user)} className="cursor-pointer">
+                    <td data-label="ID" className="text-[#64746d]">{user.id}</td>
+                    <td data-label="ชื่อ-นามสกุล" className="font-semibold text-[#17211d]">{user.fullname}</td>
+                    <td data-label="แผนก">{user.department_name || "-"}</td>
+                    <td data-label="รหัส Provider" className="font-semibold text-[#17211d]">{user.provider_id}</td>
+                    <td data-label="ชื่อผู้ใช้">{user.username || "-"}</td>
+                    <td data-label="รหัสผ่าน">
+                      <span className="text-[#8b9a94]">••••••</span>
+                    </td>
+                    <td data-label="Role">
+                      <span className={`pill ${user.role === "admin" ? "pill-kpi-t1" : "pill-muted"}`}>
+                        {user.role || "user"}
+                      </span>
+                    </td>
+                    <td data-label="สถานะ">
+                      <span className={`pill ${user.is_active ? "pill-pass" : "pill-muted"}`}>
+                        {user.is_active ? "ใช้งาน" : "ปิดใช้งาน"}
+                      </span>
+                    </td>
+                    <td data-label="เข้าสู่ระบบล่าสุด" className="text-[#64746d] whitespace-nowrap">{formatThaiDateTime(user.last_login)}</td>
+                    <td data-label="จัดการ">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            startEdit(user);
+                          }}
+                          className="btn btn-soft icon-action-btn"
+                          aria-label={`แก้ไข ${user.fullname}`}
+                          title="แก้ไข"
+                        >
+                          <Pencil size={13} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}
+                          className="btn btn-danger icon-action-btn"
+                          aria-label={`ลบ ${user.fullname}`}
+                          title="ลบ"
+                        >
+                          <Trash2 size={13} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )
             )}
           </tbody>
         </table>
