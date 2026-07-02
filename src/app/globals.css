@@ -923,8 +923,36 @@ button:disabled {
 }
 
 .kpi-results-table .kpi-result-row-child td {
+  animation: kpi-child-expand 0.32s ease both;
   font-size: 0.76rem;
   line-height: 1.35;
+}
+
+.kpi-results-table .kpi-result-row-collapsing td {
+  animation: kpi-child-collapse 0.32s ease both;
+  pointer-events: none;
+}
+
+@keyframes kpi-child-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kpi-child-collapse {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .kpi-results-table .kpi-result-row-child .pill,
@@ -970,6 +998,29 @@ button:disabled {
 .kpi-results-table .result-number-cell-child {
   padding-left: 2.5rem !important;
   position: relative;
+}
+
+.kpi-child-toggle {
+  align-items: center;
+  background: #f0f6f2;
+  border: 1px solid #d7e4dd;
+  border-radius: 6px;
+  color: #48655a;
+  display: inline-flex;
+  height: 1.35rem;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  width: 1.35rem;
+}
+
+.kpi-child-toggle:hover {
+  background: #e3f0e9;
+  border-color: #a9cdbb;
+  color: #214d3a;
+}
+
+.result-child-toggle-cell {
+  text-align: center;
 }
 
 .kpi-result-child-marker {

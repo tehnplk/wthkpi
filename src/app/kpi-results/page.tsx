@@ -8,13 +8,15 @@ import {
   ClipboardCheck,
   Clock3,
   FileSpreadsheet,
+  Minus,
+  Plus,
   Save,
   Search,
   Trash2,
   TriangleAlert,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { Department, KpiType } from "@/app/models/common";
 import type { KpiTopic as Topic } from "@/app/models/kpi-topic";
@@ -87,6 +89,7 @@ function formatDecimal(value: string | number | null) {
 }
 
 const integerInputValue = (value: string) => value.replace(/\D/g, "");
+const CHILD_ROW_TRANSITION_MS = 320;
 
 const MONTHS = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย."];
 
@@ -129,6 +132,10 @@ export default function KpiResultsPage() {
   const [sortDir, setSortDir] = useState<SortDir | null>("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [collapsedParentIds, setCollapsedParentIds] = useState<Set<number>>(() => new Set());
+  const [collapsingParentIds, setCollapsingParentIds] = useState<Set<number>>(() => new Set());
+  const collapseTimersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const initializedCollapsedParentIdsRef = useRef<Set<number>>(new Set());
 
   const [isMonFormOpen, setIsMonFormOpen] = useState(false);
   const [monKpiId, setMonKpiId] = useState<number>(0);
@@ -163,6 +170,7 @@ export default function KpiResultsPage() {
   };
 
   useEffect(() => {
+    const collapseTimers = collapseTimersRef.current;
     const params = new URLSearchParams();
     params.set("budget_year", String(thaiBudgetYear()));
     fetch(`/api/kpi-results?${params}`)
@@ -193,6 +201,11 @@ export default function KpiResultsPage() {
         setCurrentUser(data);
       })
       .catch(() => setCurrentUser(null));
+
+    return () => {
+      collapseTimers.forEach((timer) => clearTimeout(timer));
+      collapseTimers.clear();
+    };
   }, []);
 
   useEffect(() => {
@@ -359,8 +372,9 @@ export default function KpiResultsPage() {
     setSortDir(next.sortDir);
   };
 
-  const sortedResults = useMemo(() => {
+  const groupedResultMeta = useMemo(() => {
     const childrenByParent = new Map<number, Result[]>();
+    const childParentById = new Map<number, number>();
     const rootResults: Result[] = [];
     const childResults: Result[] = [];
 
@@ -391,6 +405,7 @@ export default function KpiResultsPage() {
         const children = childrenByParent.get(parentId) || [];
         children.push(row);
         childrenByParent.set(parentId, children);
+        childParentById.set(row.kpi_id, parentId);
       } else {
         rootResults.push(row);
       }
@@ -415,14 +430,49 @@ export default function KpiResultsPage() {
       if (!groupedIds.has(row.kpi_id)) groupedResults.push(row);
     }
 
-    return groupedResults;
+    const childCountByParent = new Map<number, number>();
+    childrenByParent.forEach((children, parentId) => {
+      childCountByParent.set(parentId, children.length);
+    });
+
+    return { groupedResults, childCountByParent, childParentById };
   }, [results, sortBy, sortDir]);
-  const totalPages = Math.max(1, Math.ceil(sortedResults.length / pageSize));
+
+  const sortedResults = groupedResultMeta.groupedResults;
+  const childCountByParent = groupedResultMeta.childCountByParent;
+  const childParentById = groupedResultMeta.childParentById;
+
+  useEffect(() => {
+    const newParentIds = Array.from(childCountByParent.keys()).filter(
+      (parentId) => !initializedCollapsedParentIdsRef.current.has(parentId)
+    );
+
+    if (newParentIds.length === 0) return;
+
+    newParentIds.forEach((parentId) => initializedCollapsedParentIdsRef.current.add(parentId));
+    setCollapsedParentIds((current) => {
+      const next = new Set(current);
+      newParentIds.forEach((parentId) => next.add(parentId));
+      return next;
+    });
+  }, [childCountByParent]);
+
+  const visibleResults = useMemo(
+    () => sortedResults.filter((row) => {
+      if (row.flag_parent_or_child !== "child") return true;
+      const parentId = childParentById.get(row.kpi_id);
+      return !parentId || !collapsedParentIds.has(parentId) || collapsingParentIds.has(parentId);
+    }),
+    [childParentById, collapsedParentIds, collapsingParentIds, sortedResults]
+  );
+  const totalPages = Math.max(1, Math.ceil(visibleResults.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageStart = sortedResults.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const pageEnd = Math.min(currentPage * pageSize, sortedResults.length);
-  const pagedResults = sortedResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const showManageColumn = sortedResults.some((row) => canEditKpi(row.kpi_id));
+  const pageStart = visibleResults.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = Math.min(currentPage * pageSize, visibleResults.length);
+  const pagedResults = visibleResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const showManageColumn = visibleResults.some((row) => canEditKpi(row.kpi_id));
+  const showChildToggleColumn = sortedResults.some((row) => childCountByParent.has(row.kpi_id));
+  const tableColumnCount = 7 + (showManageColumn ? 1 : 0) + (showChildToggleColumn ? 1 : 0);
   const activeFilterCount = [
     filterTopic.trim(),
     filterKpiTypeId,
@@ -435,6 +485,51 @@ export default function KpiResultsPage() {
     setFilterKpiTypeId("");
     setFilterDepartmentId("");
     setFilterStatus("");
+    setPage(1);
+  };
+
+  const toggleChildRows = (parentId: number) => {
+    const existingTimer = collapseTimersRef.current.get(parentId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      collapseTimersRef.current.delete(parentId);
+    }
+
+    if (collapsedParentIds.has(parentId)) {
+      setCollapsedParentIds((current) => {
+        const next = new Set(current);
+        next.delete(parentId);
+        return next;
+      });
+      setCollapsingParentIds((current) => {
+        const next = new Set(current);
+        next.delete(parentId);
+        return next;
+      });
+    } else {
+      setCollapsingParentIds((current) => {
+        const next = new Set(current);
+        next.add(parentId);
+        return next;
+      });
+
+      const timer = setTimeout(() => {
+        setCollapsedParentIds((current) => {
+          const next = new Set(current);
+          next.add(parentId);
+          return next;
+        });
+        setCollapsingParentIds((current) => {
+          const next = new Set(current);
+          next.delete(parentId);
+          return next;
+        });
+        collapseTimersRef.current.delete(parentId);
+      }, CHILD_ROW_TRANSITION_MS);
+
+      collapseTimersRef.current.set(parentId, timer);
+    }
+
     setPage(1);
   };
 
@@ -735,7 +830,7 @@ export default function KpiResultsPage() {
 
       <div className="pagination-bar">
         <div className="pagination-summary">
-          {sortedResults.length === 0 ? "0 items" : `${pageStart}-${pageEnd} of ${sortedResults.length}`}
+          {visibleResults.length === 0 ? "0 items" : `${pageStart}-${pageEnd} of ${visibleResults.length}`}
         </div>
         <div className="pagination-actions">
           <label className="pagination-size">
@@ -800,20 +895,27 @@ export default function KpiResultsPage() {
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
               {showManageColumn && <th className="w-28">บันทึกผลงาน</th>}
+              {showChildToggleColumn && <th className="w-12" aria-label="Toggle child KPI" />}
             </tr>
           </thead>
           <tbody>
-            {sortedResults.length === 0 ? (
+            {visibleResults.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={showManageColumn ? 8 : 7} className="empty-cell">ไม่พบผลงาน</td>
+                <td colSpan={tableColumnCount} className="empty-cell">ไม่พบผลงาน</td>
               </tr>
             ) : (
               pagedResults.map((row) => {
                 const isChildRow = row.flag_parent_or_child === "child";
                 const isReporting = row.flag_reporting !== "no";
+                const childCount = childCountByParent.get(row.kpi_id) || 0;
+                const hasChildRows = !isChildRow && childCount > 0;
+                const isCollapsed = collapsedParentIds.has(row.kpi_id);
+                const parentId = isChildRow ? childParentById.get(row.kpi_id) : undefined;
+                const isCollapsingChild = Boolean(parentId && collapsingParentIds.has(parentId));
 
                 const rowClasses = [
                   isChildRow ? "kpi-result-row-child" : "",
+                  isCollapsingChild ? "kpi-result-row-collapsing" : "",
                   !isReporting ? "kpi-result-row-no-reporting" : "",
                 ].filter(Boolean).join(" ");
 
@@ -887,6 +989,24 @@ export default function KpiResultsPage() {
                         >
                           <CalendarPlus className="result-action-icon" size={13} aria-hidden="true" />
                           <span className="result-action-mobile-text">บันทึกผลงาน</span>
+                        </button>
+                      ) : (
+                        <span className="text-xs text-[#8a9891]">-</span>
+                      )}
+                    </td>
+                  )}
+                  {showChildToggleColumn && (
+                    <td data-label="Child KPI" className="result-child-toggle-cell">
+                      {hasChildRows ? (
+                        <button
+                          type="button"
+                          className="kpi-child-toggle"
+                          onClick={() => toggleChildRows(row.kpi_id)}
+                          aria-expanded={!isCollapsed}
+                          aria-label={`${isCollapsed ? "Expand" : "Collapse"} child KPI rows`}
+                          title={isCollapsed ? "Expand child KPI" : "Collapse child KPI"}
+                        >
+                          {isCollapsed ? <Plus size={13} aria-hidden="true" /> : <Minus size={13} aria-hidden="true" />}
                         </button>
                       ) : (
                         <span className="text-xs text-[#8a9891]">-</span>
