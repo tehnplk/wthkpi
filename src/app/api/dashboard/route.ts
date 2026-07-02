@@ -24,6 +24,15 @@ function aggSub() {
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
 const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes" };
+const NON_CHILD_TOPIC_CONDITION = "(kpi_topic.flag_parent_or_child IS NULL OR kpi_topic.flag_parent_or_child <> 'child')";
+
+function applyDashboardTopicFilter<TRecord extends object, TResult>(
+  query: Knex.QueryBuilder<TRecord, TResult>
+) {
+  return query
+    .where(REPORTING_FILTER)
+    .whereRaw(NON_CHILD_TOPIC_CONDITION);
+}
 
 function applyDepartmentFilter<TRecord extends object, TResult>(
   query: Knex.QueryBuilder<TRecord, TResult>,
@@ -47,26 +56,27 @@ export async function GET(request: NextRequest) {
 
     const [totalTopics, totalResults, statusCounts, kpiTypeSummary, recentResults] = await Promise.all([
       applyDepartmentFilter(
-        db("kpi_topic")
-          .count("* as count")
-          .where(REPORTING_FILTER),
+        applyDashboardTopicFilter(
+          db("kpi_topic")
+            .count("* as count")
+        ),
         departmentId
       ).first(),
 
       applyDepartmentFilter(
-        db("kpi_topic")
-          .count("* as count")
-          .where(REPORTING_FILTER)
-          .whereIn("kpi_topic.status", ["pass", "fail"]),
+        applyDashboardTopicFilter(
+          db("kpi_topic")
+            .count("* as count")
+        ).whereIn("kpi_topic.status", ["pass", "fail"]),
         departmentId
       ).first(),
 
       applyDepartmentFilter(
-        db("kpi_topic")
-          .select(db.raw(`${STATUS_EXPR} as status`))
-          .count("* as count")
-          .where(REPORTING_FILTER)
-          .groupByRaw(STATUS_EXPR),
+        applyDashboardTopicFilter(
+          db("kpi_topic")
+            .select(db.raw(`${STATUS_EXPR} as status`))
+            .count("* as count")
+        ).groupByRaw(STATUS_EXPR),
         departmentId
       ) as unknown as Promise<StatusRow[]>,
 
@@ -74,7 +84,8 @@ export async function GET(request: NextRequest) {
         db("kpi_type")
           .leftJoin("kpi_topic", function () {
             this.on("kpi_type.id", "=", "kpi_topic.kpi_type_id")
-              .andOn("kpi_topic.flag_reporting", "=", db.raw("?", ["yes"]));
+              .andOn("kpi_topic.flag_reporting", "=", db.raw("?", ["yes"]))
+              .andOn(db.raw(NON_CHILD_TOPIC_CONDITION));
           })
           .select("kpi_type.id", "kpi_type.type")
           .countDistinct("kpi_topic.id as total_topics")
@@ -112,6 +123,7 @@ export async function GET(request: NextRequest) {
             "kpi_topic.note as topic_note"
           )
           .where(REPORTING_FILTER)
+          .whereRaw(NON_CHILD_TOPIC_CONDITION)
           .modify((builder) => {
             if (!session) builder.where("kpi_topic.flag_show_guest", "yes");
           })
