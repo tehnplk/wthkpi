@@ -14,8 +14,10 @@ export async function GET(request: NextRequest) {
     }
 
     const rows = await db("kpi_result_mon")
-      .where({ kpi_id: kpiId, budget_year: budgetYear })
-      .orderBy("mon", "asc");
+      .leftJoin("users", "kpi_result_mon.updated_by", "users.id")
+      .select("kpi_result_mon.*", "users.fullname as updated_by_name")
+      .where({ "kpi_result_mon.kpi_id": kpiId, "kpi_result_mon.budget_year": budgetYear })
+      .orderBy("kpi_result_mon.mon", "asc");
 
     return NextResponse.json(rows);
   } catch (error: unknown) {
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await getSession();
-    if (!(await canManageKpi(session, kpi_id))) {
+    if (!session || !(await canManageKpi(session, kpi_id))) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไข KPI นี้" }, { status: 403 });
     }
 
@@ -51,6 +53,8 @@ export async function POST(request: NextRequest) {
           mon: m.mon,
           target: m.target ?? null,
           result: m.result ?? null,
+          updated_at: trx.fn.now(),
+          updated_by: session.id,
         };
 
         if (existing) {
@@ -62,8 +66,10 @@ export async function POST(request: NextRequest) {
     });
 
     const rows = await db("kpi_result_mon")
-      .where({ kpi_id, budget_year })
-      .orderBy("mon", "asc");
+      .leftJoin("users", "kpi_result_mon.updated_by", "users.id")
+      .select("kpi_result_mon.*", "users.fullname as updated_by_name")
+      .where({ "kpi_result_mon.kpi_id": kpi_id, "kpi_result_mon.budget_year": budget_year })
+      .orderBy("kpi_result_mon.mon", "asc");
 
     return NextResponse.json(rows);
   } catch (error: unknown) {

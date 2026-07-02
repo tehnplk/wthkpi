@@ -66,6 +66,19 @@ function formatThaiShortDate(value: string | null) {
   }).format(date);
 }
 
+function formatThaiDateTime(value: string | null) {
+  if (!value) return "-";
+  const date = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function formatDecimal(value: string | number | null) {
   if (value === null || value === "") return "-";
   const numberValue = Number(value);
@@ -83,6 +96,14 @@ interface CurrentUser {
   username: string | null;
   department_id: number | null;
   role: string;
+}
+
+interface MonthlyResultRow {
+  mon: number;
+  target: string | number | null;
+  result: string | number | null;
+  updated_at: string | null;
+  updated_by_name: string | null;
 }
 
 function thaiBudgetYear(): number {
@@ -119,6 +140,8 @@ export default function KpiResultsPage() {
   const [monTarget, setMonTarget] = useState("");
   const [monRateCalValue, setMonRateCalValue] = useState("");
   const [monValues, setMonValues] = useState<(string)[]>(Array(12).fill(""));
+  const [monLastUpdatedAt, setMonLastUpdatedAt] = useState<string | null>(null);
+  const [monLastUpdatedBy, setMonLastUpdatedBy] = useState<string | null>(null);
   const [monLoading, setMonLoading] = useState(false);
   const [monError, setMonError] = useState("");
   const [editCell, setEditCell] = useState<number | null>(null);
@@ -211,6 +234,8 @@ export default function KpiResultsPage() {
     setMonKpiCriteria(topic?.criteria || "");
     setMonKpiNote(topic?.note || "");
     setMonError("");
+    setMonLastUpdatedAt(null);
+    setMonLastUpdatedBy(null);
     setMonLoading(true);
     setMonTopicStatus("pending");
     setIsMonFormOpen(true);
@@ -225,13 +250,20 @@ export default function KpiResultsPage() {
       const vals = Array(12).fill("");
       let tg = "";
       if (Array.isArray(rows)) {
+        let latestRow: MonthlyResultRow | null = null;
         for (const r of rows) {
-          const idx = r.mon - 1;
+          const row = r as MonthlyResultRow;
+          const idx = row.mon - 1;
           if (idx >= 0 && idx < 12) {
-            vals[idx] = r.result != null ? String(r.result) : "";
-            if (!tg && r.target != null) tg = String(r.target);
+            vals[idx] = row.result != null ? String(row.result) : "";
+            if (!tg && row.target != null) tg = String(row.target);
+          }
+          if (row.updated_at && (!latestRow?.updated_at || row.updated_at > latestRow.updated_at)) {
+            latestRow = row;
           }
         }
+        setMonLastUpdatedAt(latestRow?.updated_at || null);
+        setMonLastUpdatedBy(latestRow?.updated_by_name || null);
       }
       setMonValues(vals);
       setMonTarget(tg);
@@ -253,6 +285,8 @@ export default function KpiResultsPage() {
     setMonTarget("");
     setMonRateCalValue("");
     setMonValues(Array(12).fill(""));
+    setMonLastUpdatedAt(null);
+    setMonLastUpdatedBy(null);
     setMonError("");
     setEditCell(null);
   };
@@ -502,6 +536,9 @@ export default function KpiResultsPage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="text-xs text-[#64746d] mb-3">
+              ปรับปรุงล่าสุด : {monLastUpdatedBy || "-"} : {formatThaiDateTime(monLastUpdatedAt)}
             </div>
             <div className="data-table-wrap">
               <table className="data-table text-sm">
