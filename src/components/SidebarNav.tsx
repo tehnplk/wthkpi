@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronDown,
   Tags,
+  Flag,
 } from "lucide-react";
 
 interface NavItem {
@@ -34,6 +35,7 @@ const navGroups: NavGroup[] = [
       { href: "/setting/departments", label: "แผนก", icon: Building2 },
       { href: "/setting/users", label: "ผู้ใช้", icon: Users },
       { href: "/setting/kpi-type", label: "ประเภท", icon: Tags },
+      { href: "/setting/mission", label: "พันธกิจ", icon: Flag },
       { href: "/setting/kpi-topics", label: "ตัวชี้วัด", icon: Target },
     ],
   },

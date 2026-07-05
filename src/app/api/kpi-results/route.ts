@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const kpiTypeId = searchParams.get("kpi_type_id");
     const departmentId = searchParams.get("department_id");
+    const missionId = searchParams.get("mission_id");
     const status = searchParams.get("status");
     const topic = searchParams.get("topic")?.trim();
     const budgetYear = searchParams.get("budget_year")
@@ -56,6 +57,9 @@ export async function GET(request: NextRequest) {
       );
 
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
+    if (missionId) {
+      query = query.whereRaw("JSON_CONTAINS(kpi_topic.mission, ?)", [JSON.stringify(Number(missionId))]);
+    }
     if (departmentId) {
       query = query.whereExists(function () {
         this.select(db.raw("1"))

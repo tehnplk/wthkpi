@@ -29,7 +29,7 @@ export interface DashboardResultRow {
   result: number | null;
   percent: number | null;
   status: string;
-  note: string | null;
+  topic_note: string | null;
   report_date: string | null;
 }
 

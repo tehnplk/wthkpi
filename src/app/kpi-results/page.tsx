@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
-import type { Department, KpiType } from "@/app/models/common";
+import type { Department, KpiType, Mission } from "@/app/models/common";
 import type { KpiTopic as Topic } from "@/app/models/kpi-topic";
 import type { KpiResultRow as Result } from "@/app/models/kpi-result";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
@@ -120,12 +120,38 @@ export default function KpiResultsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const getMissionIds = (missionData: unknown): number[] => {
+    if (!missionData) return [];
+    if (Array.isArray(missionData)) return missionData.map(Number);
+    if (typeof missionData === "string") {
+      try {
+        const parsed = JSON.parse(missionData);
+        if (Array.isArray(parsed)) return parsed.map(Number);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const getMissionListForTopic = (kpiId: number): string[] => {
+    const topic = topics.find((t) => t.id === kpiId);
+    if (!topic || !topic.mission) return [];
+    const ids = getMissionIds(topic.mission);
+    if (ids.length === 0) return [];
+    return ids
+      .map((id) => missions.find((m) => m.id === id)?.name)
+      .filter((name): name is string => Boolean(name));
+  };
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [error, setError] = useState("");
 
   const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
   const [filterDepartmentId, setFilterDepartmentId] = useState("");
+  const [filterMissionId, setFilterMissionId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
   const [sortBy, setSortBy] = useState<string | null>("kpi_id");
@@ -159,6 +185,7 @@ export default function KpiResultsPage() {
     params.set("budget_year", String(monBudgetYear));
     if (filterKpiTypeId) params.set("kpi_type_id", filterKpiTypeId);
     if (filterDepartmentId) params.set("department_id", filterDepartmentId);
+    if (filterMissionId) params.set("mission_id", filterMissionId);
     if (filterStatus) params.set("status", filterStatus);
     if (filterTopic.trim()) params.set("topic", filterTopic.trim());
     fetch(`/api/kpi-results?${params}`)
@@ -195,6 +222,11 @@ export default function KpiResultsPage() {
       .then((data) => {
         if (Array.isArray(data)) setDepartments(data);
       });
+    fetch("/api/missions")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setMissions(data);
+      });
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -211,7 +243,7 @@ export default function KpiResultsPage() {
   useEffect(() => {
     if (!loading) loadResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKpiTypeId, filterDepartmentId, filterStatus, filterTopic, monBudgetYear]);
+  }, [filterKpiTypeId, filterDepartmentId, filterMissionId, filterStatus, filterTopic, monBudgetYear]);
 
   const departmentLabelByKpiId = useMemo(() => {
     const labels: Record<number, string[]> = {};
@@ -476,6 +508,7 @@ export default function KpiResultsPage() {
   const activeFilterCount = [
     filterTopic.trim(),
     filterKpiTypeId,
+    filterMissionId,
     filterDepartmentId,
     filterStatus,
   ].filter(Boolean).length;
@@ -483,6 +516,7 @@ export default function KpiResultsPage() {
   const clearFilters = () => {
     setFilterTopic("");
     setFilterKpiTypeId("");
+    setFilterMissionId("");
     setFilterDepartmentId("");
     setFilterStatus("");
     setPage(1);
@@ -791,6 +825,20 @@ export default function KpiResultsPage() {
               ))}
             </select>
           </label>
+          <label className="result-filter-field">
+            <select
+              value={filterMissionId}
+              onChange={(event) => {
+                setFilterMissionId(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">ทุกพันธกิจ</option>
+              {missions.map((mission) => (
+                <option key={mission.id} value={mission.id}>{mission.name}</option>
+              ))}
+            </select>
+          </label>
           <label className="result-filter-field result-filter-department">
             <select
               value={filterDepartmentId}
@@ -941,6 +989,18 @@ export default function KpiResultsPage() {
                     {row.topic_criteria && (
                       <div className="text-xs font-normal text-red-500/70 mt-0.5">
                         <strong>({row.topic_criteria})</strong>
+                      </div>
+                    )}
+                    {getMissionListForTopic(row.kpi_id).length > 0 && (
+                      <div className="text-xs font-normal text-emerald-700/80 mt-1 space-y-0.5">
+                        {getMissionListForTopic(row.kpi_id).map((mName, i) => (
+                          <div key={i}>{mName}</div>
+                        ))}
+                      </div>
+                    )}
+                    {row.topic_note && (
+                      <div className="text-[11px] font-normal text-gray-400 mt-0.5">
+                        หมายเหตุ : {row.topic_note}
                       </div>
                     )}
                     {departmentLabels(row.kpi_id).length > 0 && (

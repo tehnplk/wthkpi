@@ -67,6 +67,15 @@ input, select, textarea {
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+  border-radius: 0.25rem;
+  padding: 0;
+  width: auto;
+  height: auto;
+  accent-color: var(--accent);
+}
+
 input::placeholder,
 textarea::placeholder {
   color: #1d4ed8;
@@ -834,15 +843,18 @@ button:disabled {
   gap: 0.35rem;
 }
 
-.data-table.kpi-topics-table td {
+.data-table.kpi-topics-table td,
+.data-table.kpi-results-table td {
   font-size: 0.75rem;
 }
 
-.data-table.kpi-topics-table .pill {
+.data-table.kpi-topics-table .pill,
+.data-table.kpi-results-table .pill {
   font-size: 0.625rem;
 }
 
-.data-table.kpi-topics-table .text-xs {
+.data-table.kpi-topics-table .text-xs,
+.data-table.kpi-results-table .text-xs {
   font-size: 0.625rem;
 }
 
@@ -924,7 +936,7 @@ button:disabled {
 
 .kpi-results-table .kpi-result-row-child td {
   animation: kpi-child-expand 0.32s ease both;
-  font-size: 0.76rem;
+  font-size: 0.635rem;
   line-height: 1.35;
 }
 
@@ -957,7 +969,7 @@ button:disabled {
 
 .kpi-results-table .kpi-result-row-child .pill,
 .kpi-results-table .kpi-result-row-child .number-badge {
-  font-size: 0.68rem;
+  font-size: 0.555rem;
   min-height: 1.35rem;
   padding: 0.24rem 0.48rem;
 }
@@ -977,7 +989,7 @@ button:disabled {
 }
 
 .kpi-results-table .kpi-result-row-child .text-xs {
-  font-size: 0.68rem;
+  font-size: 0.555rem;
 }
 
 .kpi-results-table .kpi-result-row-no-reporting td {

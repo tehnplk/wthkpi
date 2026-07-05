@@ -13,6 +13,7 @@ export interface KpiTopic {
   status: string;
   kpi_number: string | null;
   note: string | null;
+  mission: number[] | null;
   criteria: string | null;
   rate_cal_value: number | null;
   flag_parent_or_child: "parent" | "child" | null;

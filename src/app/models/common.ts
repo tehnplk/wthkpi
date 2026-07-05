@@ -8,6 +8,11 @@ export interface KpiType {
   type: string;
 }
 
+export interface Mission {
+  id: number;
+  name: string;
+}
+
 export interface CountRow {
   count: number;
 }

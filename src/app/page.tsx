@@ -248,6 +248,9 @@ export default function DashboardPage() {
                   </td>
                   <td data-label="KPI" className="dashboard-recent-kpi-cell font-semibold text-[#17211d]">
                     {r.kpi_name}
+                    {r.topic_note && (
+                      <div className="text-xs font-normal text-gray-500 mt-1">{r.topic_note}</div>
+                    )}
                     <div className="mt-1 dashboard-recent-type-desktop">
                       <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
                     </div>

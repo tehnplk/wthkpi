@@ -3,7 +3,8 @@
 import { ChevronLeft, ChevronRight, MinusCircle, Pencil, Plus, Save, Search, Target, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/components/Modal";
-import type { Department, KpiType } from "@/app/models/common";
+import { MultiSelect } from "@/components/MultiSelect";
+import type { Department, KpiType, Mission } from "@/app/models/common";
 import type { KpiTopic as Topic, KpiTopicUser as User } from "@/app/models/kpi-topic";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
@@ -54,8 +55,12 @@ export default function KpiTopicsPage() {
   const [kpiTypes, setKpiTypes] = useState<KpiType[]>([]);
   const [filterKpiTypeId, setFilterKpiTypeId] = useState("");
   const [filterDepartmentId, setFilterDepartmentId] = useState("");
+  const [filterMissionId, setFilterMissionId] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [selectedMissions, setSelectedMissions] = useState<number[]>([]);
+  const [editSelectedMissions, setEditSelectedMissions] = useState<number[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("id");
   const [sortDir, setSortDir] = useState<SortDir | null>("asc");
@@ -86,6 +91,10 @@ export default function KpiTopicsPage() {
       .then((res) => res.json())
       .then((data) => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
+    fetch("/api/missions")
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data)) setMissions(data); })
+      .catch(() => {});
   }, []);
 
   const closeForm = () => {
@@ -100,6 +109,7 @@ export default function KpiTopicsPage() {
     setEditFlagReporting(true);
     setEditFlagShowGuest(true);
     setEditAssignments([emptyAssignment()]);
+    setEditSelectedMissions([]);
     setParentTopic(null);
   };
 
@@ -115,6 +125,7 @@ export default function KpiTopicsPage() {
     setFlagReporting(true);
     setFlagShowGuest(true);
     setAssignments([emptyAssignment()]);
+    setSelectedMissions([]);
     setError("");
     setIsFormOpen(true);
   };
@@ -130,6 +141,7 @@ export default function KpiTopicsPage() {
     setRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setFlagReporting(true);
     setFlagShowGuest(topic.flag_show_guest !== "no");
+    setSelectedMissions([]);
     setAssignments(
       (topic.departments || []).length > 0
         ? topic.departments.map((d) => ({ deptId: d.id, userId: d.user_id || 0 }))
@@ -137,6 +149,28 @@ export default function KpiTopicsPage() {
     );
     setError("");
     setIsFormOpen(true);
+  };
+
+  const getMissionIds = (missionData: unknown): number[] => {
+    if (!missionData) return [];
+    if (Array.isArray(missionData)) return missionData.map(Number);
+    if (typeof missionData === "string") {
+      try {
+        const parsed = JSON.parse(missionData);
+        if (Array.isArray(parsed)) return parsed.map(Number);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const getMissionList = (missionData: unknown): string[] => {
+    const ids = getMissionIds(missionData);
+    if (ids.length === 0) return [];
+    return ids
+      .map((id) => missions.find((m) => m.id === id)?.name)
+      .filter((name): name is string => Boolean(name));
   };
 
   const startEdit = (topic: Topic) => {
@@ -149,6 +183,7 @@ export default function KpiTopicsPage() {
     setEditRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setEditFlagReporting(topic.flag_reporting !== "no");
     setEditFlagShowGuest(topic.flag_show_guest !== "no");
+    setEditSelectedMissions(getMissionIds(topic.mission));
     const depts = topic.departments || [];
     setEditAssignments(
       depts.length > 0
@@ -181,6 +216,7 @@ export default function KpiTopicsPage() {
         parent_kpi: parentTopic?.id ?? null,
         flag_reporting: flagReporting ? "yes" : "no",
         flag_show_guest: flagShowGuest ? "yes" : "no",
+        mission: selectedMissions,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -219,6 +255,7 @@ export default function KpiTopicsPage() {
         rate_cal_value: editRateCalValue ? Number.parseInt(editRateCalValue, 10) : null,
         flag_reporting: editFlagReporting ? "yes" : "no",
         flag_show_guest: editFlagShowGuest ? "yes" : "no",
+        mission: editSelectedMissions,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
           user_id: a.userId || null,
@@ -260,9 +297,10 @@ export default function KpiTopicsPage() {
   const displayedTopics = topics.filter((topic) => {
     const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
     const matchesDepartment = !filterDepartmentId || (topic.departments || []).some((dept) => dept.id === Number(filterDepartmentId));
+    const matchesMission = !filterMissionId || getMissionIds(topic.mission).includes(Number(filterMissionId));
     const matchesTopic = !topicFilter || [topic.name, topic.kpi_number]
       .some((value) => (value || "").toLowerCase().includes(topicFilter));
-    return matchesType && matchesDepartment && matchesTopic;
+    return matchesType && matchesDepartment && matchesMission && matchesTopic;
   });
 
   const handleSort = (col: string) => {
@@ -345,12 +383,14 @@ export default function KpiTopicsPage() {
     filterTopic.trim(),
     filterKpiTypeId,
     filterDepartmentId,
+    filterMissionId,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setFilterTopic("");
     setFilterKpiTypeId("");
     setFilterDepartmentId("");
+    setFilterMissionId("");
     setPage(1);
   };
 
@@ -444,6 +484,20 @@ export default function KpiTopicsPage() {
                 ))}
               </select>
             </label>
+            <label className="result-filter-field">
+              <select
+                value={filterMissionId}
+                onChange={(event) => {
+                  setFilterMissionId(event.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">ทุกพันธกิจ</option>
+                {missions.map((mission) => (
+                  <option key={mission.id} value={mission.id}>{mission.name}</option>
+                ))}
+              </select>
+            </label>
             <label className="result-filter-field result-filter-department">
               <select
                 value={filterDepartmentId}
@@ -521,6 +575,16 @@ export default function KpiTopicsPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-group">
+            <label>พันธกิจ</label>
+            <MultiSelect
+              options={missions}
+              selected={isEditing ? editSelectedMissions : selectedMissions}
+              onChange={(ids) => isEditing ? setEditSelectedMissions(ids) : setSelectedMissions(ids)}
+              placeholder="เลือกพันธกิจ..."
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] gap-3 items-start">
@@ -760,8 +824,17 @@ export default function KpiTopicsPage() {
                           <strong>({topic.criteria})</strong>
                         </div>
                       )}
+                      {getMissionList(topic.mission).length > 0 && (
+                        <div className="text-xs font-normal text-emerald-700/80 mt-1 space-y-0.5">
+                          {getMissionList(topic.mission).map((mName, i) => (
+                            <div key={i}>{mName}</div>
+                          ))}
+                        </div>
+                      )}
                       {topic.note && (
-                        <div className="text-xs font-normal text-gray-500 mt-1">{topic.note}</div>
+                        <div className="text-[11px] font-normal text-gray-400 mt-0.5">
+                          หมายเหตุ : {topic.note}
+                        </div>
                       )}
                     </td>
                     <td data-label="หน่วยงานรับผิดชอบ">
