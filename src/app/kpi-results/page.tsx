@@ -808,7 +808,7 @@ export default function KpiResultsPage() {
                 setFilterTopic(event.target.value);
                 setPage(1);
               }}
-              placeholder="พิมพ์ชื่อ KPI หรือ พันธกิจ..."
+              placeholder="ค้นตัวชี้วัด พันธกิจ หมายเหตุ"
             />
           </label>
           <label className="result-filter-field">

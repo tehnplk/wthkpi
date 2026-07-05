@@ -298,7 +298,7 @@ export default function KpiTopicsPage() {
     const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
     const matchesDepartment = !filterDepartmentId || (topic.departments || []).some((dept) => dept.id === Number(filterDepartmentId));
     const matchesMission = !filterMissionId || getMissionIds(topic.mission).includes(Number(filterMissionId));
-    const matchesTopic = !topicFilter || [topic.name, ...getMissionList(topic.mission)]
+    const matchesTopic = !topicFilter || [topic.name, topic.note || "", ...getMissionList(topic.mission)]
       .some((value) => (value || "").toLowerCase().includes(topicFilter));
     return matchesType && matchesDepartment && matchesMission && matchesTopic;
   });
@@ -467,7 +467,7 @@ export default function KpiTopicsPage() {
                   setFilterTopic(event.target.value);
                   setPage(1);
                 }}
-                placeholder="พิมพ์ชื่อ KPI หรือ พันธกิจ..."
+                placeholder="ค้นตัวชี้วัด พันธกิจ หมายเหตุ"
               />
             </label>
             <label className="result-filter-field">

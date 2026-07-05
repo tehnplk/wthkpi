@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
       const topicPattern = `%${topic}%`;
       query = query.where(function () {
         this.where("kpi_topic.name", "like", topicPattern)
+          .orWhere("kpi_topic.note", "like", topicPattern)
           .orWhereExists(function () {
             this.select(db.raw("1"))
               .from("mission")
