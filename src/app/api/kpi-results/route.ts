@@ -72,7 +72,12 @@ export async function GET(request: NextRequest) {
       const topicPattern = `%${topic}%`;
       query = query.where(function () {
         this.where("kpi_topic.name", "like", topicPattern)
-          .orWhere("kpi_topic.kpi_number", "like", topicPattern);
+          .orWhereExists(function () {
+            this.select(db.raw("1"))
+              .from("mission")
+              .whereRaw("JSON_CONTAINS(kpi_topic.mission, CONCAT('', mission.id))")
+              .where("mission.name", "like", topicPattern);
+          });
       });
     }
     if (!session) query = query.where("kpi_topic.flag_show_guest", "yes");
