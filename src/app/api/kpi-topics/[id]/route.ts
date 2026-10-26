@@ -60,7 +60,7 @@ export async function PUT(
     }
 
     if (session?.role !== "admin") {
-      const restrictedFields = ["name", "kpi_type_id", "kpi_number", "note", "criteria", "mission", "assignments", "flag_show_guest"];
+      const restrictedFields = ["name", "kpi_types", "kpi_number", "note", "criteria", "mission", "assignments", "flag_show_guest"];
       if (restrictedFields.some((field) => body[field] !== undefined)) {
         return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไขข้อมูลตั้งค่า KPI" }, { status: 403 });
       }
@@ -68,7 +68,11 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) updateData.name = body.name;
-    if (body.kpi_type_id !== undefined) updateData.kpi_type_id = body.kpi_type_id || null;
+    if (body.kpi_types !== undefined) {
+      const kpiTypes: number[] = Array.isArray(body.kpi_types) ? body.kpi_types : [];
+      updateData.kpi_type_id = kpiTypes[0] || null;
+      updateData.kpi_types = kpiTypes.length > 0 ? JSON.stringify(kpiTypes) : null;
+    }
     if (body.kpi_number !== undefined) updateData.kpi_number = body.kpi_number || null;
     if (body.note !== undefined) updateData.note = body.note || null;
     if (body.criteria !== undefined) updateData.criteria = body.criteria || null;
@@ -85,10 +89,10 @@ export async function PUT(
       return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
 
-    if (body.kpi_type_id !== undefined) {
+    if (body.kpi_types !== undefined) {
       await db("kpi_topic")
         .where({ parent_kpi: id, flag_parent_or_child: "child" })
-        .update({ kpi_type_id: updateData.kpi_type_id });
+        .update({ kpi_type_id: updateData.kpi_type_id, kpi_types: updateData.kpi_types });
     }
 
     if (assignments !== undefined) {

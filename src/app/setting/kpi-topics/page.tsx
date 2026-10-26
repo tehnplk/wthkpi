@@ -31,7 +31,7 @@ export default function KpiTopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
-  const [kpiTypeId, setKpiTypeId] = useState("");
+  const [kpiTypeIds, setKpiTypeIds] = useState<number[]>([]);
   const [kpiNumber, setKpiNumber] = useState("");
   const [note, setNote] = useState("");
   const [criteria, setCriteria] = useState("");
@@ -41,7 +41,7 @@ export default function KpiTopicsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
-  const [editKpiTypeId, setEditKpiTypeId] = useState("");
+  const [editKpiTypeIds, setEditKpiTypeIds] = useState<number[]>([]);
   const [editKpiNumber, setEditKpiNumber] = useState("");
   const [editNote, setEditNote] = useState("");
   const [editCriteria, setEditCriteria] = useState("");
@@ -101,7 +101,7 @@ export default function KpiTopicsPage() {
     setIsFormOpen(false);
     setEditingId(null);
     setEditName("");
-    setEditKpiTypeId("");
+    setEditKpiTypeIds([]);
     setEditKpiNumber("");
     setEditNote("");
     setEditCriteria("");
@@ -117,7 +117,7 @@ export default function KpiTopicsPage() {
     setEditingId(null);
     setParentTopic(null);
     setName("");
-    setKpiTypeId("");
+    setKpiTypeIds([]);
     setKpiNumber("");
     setNote("");
     setCriteria("");
@@ -134,7 +134,7 @@ export default function KpiTopicsPage() {
     setEditingId(null);
     setParentTopic(topic);
     setName("");
-    setKpiTypeId(topic.kpi_type_id ? String(topic.kpi_type_id) : "");
+    setKpiTypeIds(getIdList(topic.kpi_types));
     setKpiNumber(topic.kpi_number ? `${topic.kpi_number}.` : "");
     setNote("");
     setCriteria("");
@@ -151,7 +151,7 @@ export default function KpiTopicsPage() {
     setIsFormOpen(true);
   };
 
-  const getMissionIds = (missionData: unknown): number[] => {
+  const getIdList = (missionData: unknown): number[] => {
     if (!missionData) return [];
     if (Array.isArray(missionData)) return missionData.map(Number);
     if (typeof missionData === "string") {
@@ -166,7 +166,7 @@ export default function KpiTopicsPage() {
   };
 
   const getMissionList = (missionData: unknown): string[] => {
-    const ids = getMissionIds(missionData);
+    const ids = getIdList(missionData);
     if (ids.length === 0) return [];
     return ids
       .map((id) => missions.find((m) => m.id === id)?.name)
@@ -176,14 +176,14 @@ export default function KpiTopicsPage() {
   const startEdit = (topic: Topic) => {
     setEditingId(topic.id);
     setEditName(topic.name);
-    setEditKpiTypeId(topic.kpi_type_id ? String(topic.kpi_type_id) : "");
+    setEditKpiTypeIds(getIdList(topic.kpi_types));
     setEditKpiNumber(topic.kpi_number || "");
     setEditNote(topic.note || "");
     setEditCriteria(topic.criteria || "");
     setEditRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setEditFlagReporting(topic.flag_reporting !== "no");
     setEditFlagShowGuest(topic.flag_show_guest !== "no");
-    setEditSelectedMissions(getMissionIds(topic.mission));
+    setEditSelectedMissions(getIdList(topic.mission));
     const depts = topic.departments || [];
     setEditAssignments(
       depts.length > 0
@@ -206,7 +206,7 @@ export default function KpiTopicsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.trim(),
-        kpi_type_id: kpiTypeId ? Number(kpiTypeId) : null,
+        kpi_types: kpiTypeIds,
         status: "pending",
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
@@ -248,7 +248,7 @@ export default function KpiTopicsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: editName.trim(),
-        kpi_type_id: editKpiTypeId ? Number(editKpiTypeId) : null,
+        kpi_types: editKpiTypeIds,
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
         criteria: editCriteria.trim() || null,
@@ -295,9 +295,9 @@ export default function KpiTopicsPage() {
   const isEditing = editingId !== null;
   const topicFilter = filterTopic.trim().toLowerCase();
   const displayedTopics = topics.filter((topic) => {
-    const matchesType = !filterKpiTypeId || topic.kpi_type_id === Number(filterKpiTypeId);
+    const matchesType = !filterKpiTypeId || getIdList(topic.kpi_types).includes(Number(filterKpiTypeId));
     const matchesDepartment = !filterDepartmentId || (topic.departments || []).some((dept) => dept.id === Number(filterDepartmentId));
-    const matchesMission = !filterMissionId || getMissionIds(topic.mission).includes(Number(filterMissionId));
+    const matchesMission = !filterMissionId || getIdList(topic.mission).includes(Number(filterMissionId));
     const matchesTopic = !topicFilter || [topic.name, topic.note || "", ...getMissionList(topic.mission)]
       .some((value) => (value || "").toLowerCase().includes(topicFilter));
     return matchesType && matchesDepartment && matchesMission && matchesTopic;
@@ -563,17 +563,13 @@ export default function KpiTopicsPage() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="topic-type">ประเภท</label>
-              <select
-                id="topic-type"
-                value={isEditing ? editKpiTypeId : kpiTypeId}
-                onChange={(event) => isEditing ? setEditKpiTypeId(event.target.value) : setKpiTypeId(event.target.value)}
-              >
-                <option value="">เลือกประเภทตัวชี้วัด</option>
-                {kpiTypes.map((type) => (
-                  <option key={type.id} value={type.id}>{type.type}</option>
-                ))}
-              </select>
+              <label>ประเภท</label>
+              <MultiSelect
+                options={kpiTypes.map((type) => ({ id: type.id, name: type.type }))}
+                selected={isEditing ? editKpiTypeIds : kpiTypeIds}
+                onChange={(ids) => isEditing ? setEditKpiTypeIds(ids) : setKpiTypeIds(ids)}
+                placeholder="เลือกประเภท..."
+              />
             </div>
           </div>
 
@@ -812,7 +808,15 @@ export default function KpiTopicsPage() {
                       {topic.kpi_number || "-"}
                     </td>
                     <td data-label="ประเภท">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(topic.kpi_type_id)}`}>{topic.kpi_type || "-"}</span>
+                      <div className="topic-department-list">
+                        {getIdList(topic.kpi_types).length === 0
+                          ? <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(null)}`}>-</span>
+                          : getIdList(topic.kpi_types).map((typeId) => (
+                              <span key={typeId} className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(typeId)}`}>
+                                {kpiTypes.find((t) => t.id === typeId)?.type || "-"}
+                              </span>
+                            ))}
+                      </div>
                     </td>
                     <td
                       data-label="ชื่อ"

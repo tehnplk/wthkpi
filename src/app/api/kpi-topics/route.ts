@@ -64,10 +64,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { assignments } = body;
     const isChildTopic = body.flag_parent_or_child === "child";
+    const kpiTypes: number[] = Array.isArray(body.kpi_types) ? body.kpi_types : [];
 
     const [id] = await db("kpi_topic").insert({
       name: body.name,
-      kpi_type_id: body.kpi_type_id || null,
+      kpi_type_id: kpiTypes[0] || null,
+      kpi_types: kpiTypes.length > 0 ? JSON.stringify(kpiTypes) : null,
       status: body.status || "pending",
       kpi_number: body.kpi_number || null,
       note: body.note || null,

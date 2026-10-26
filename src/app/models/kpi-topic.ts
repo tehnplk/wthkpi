@@ -10,6 +10,7 @@ export interface KpiTopic {
   name: string;
   kpi_type_id: number | null;
   kpi_type: string | null;
+  kpi_types: number[] | string | null;
   status: string;
   kpi_number: string | null;
   note: string | null;

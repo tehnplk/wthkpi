@@ -54,7 +54,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const used = await db("kpi_topic").where({ kpi_type_id: id }).first();
+    const used = await db("kpi_topic")
+      .where({ kpi_type_id: id })
+      .orWhereRaw("JSON_CONTAINS(kpi_types, ?)", [String(Number(id))])
+      .first();
     if (used) {
       return NextResponse.json({ error: "มีตัวชี้วัดใช้งานประเภทนี้อยู่ ไม่สามารถลบได้" }, { status: 409 });
     }
