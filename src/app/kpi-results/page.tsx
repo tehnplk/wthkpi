@@ -2,6 +2,7 @@
 
 import {
   CalendarPlus,
+  Eye,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -23,7 +24,7 @@ import type { KpiTopic as Topic } from "@/app/models/kpi-topic";
 import type { KpiResultRow as Result } from "@/app/models/kpi-result";
 import { MonthChart } from "@/components/MonthChart";
 import { parseLevels } from "@/lib/levels";
-import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
+import { confirmAction, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
 const statusColors: Record<string, string> = {
@@ -170,6 +171,7 @@ export default function KpiResultsPage() {
   const initializedCollapsedParentIdsRef = useRef<Set<number>>(new Set());
 
   const [isMonFormOpen, setIsMonFormOpen] = useState(false);
+  const [monReadOnly, setMonReadOnly] = useState(true);
   const [monKpiId, setMonKpiId] = useState<number>(0);
   const [monKpiName, setMonKpiName] = useState("");
   const [monKpiNumber, setMonKpiNumber] = useState("");
@@ -278,11 +280,7 @@ export default function KpiResultsPage() {
   };
 
   const openMonForm = async (kpiId: number, kpiName: string, kpiNumber: string | null) => {
-    if (!canEditKpi(kpiId)) {
-      notifyError("แก้ไขได้เฉพาะ KPI ที่แผนกของคุณรับผิดชอบ");
-      return;
-    }
-
+    setMonReadOnly(!canEditKpi(kpiId));
     setMonKpiId(kpiId);
     setMonKpiName(kpiName);
     setMonKpiNumber(kpiNumber || "");
@@ -383,17 +381,15 @@ export default function KpiResultsPage() {
   const monRate = monTargetTotal && monRateCalValue ? ((monSum / monTargetTotal) * Number(monRateCalValue)).toFixed(2) : null;
   const isLevelCal = monCalType === "level";
 
-  const monCumulativeRates = (() => {
-    let cumResult = 0;
-    let cumTarget = 0;
-    return monValues.map((v, i) => {
-      cumResult += Number(v) || 0;
-      cumTarget += Number(monTargets[i]) || 0;
-      const denom = isMonthlyTarget ? cumTarget : Number(monTarget) || 0;
-      if (v === "" || !denom || !monRateCalValue) return null;
-      return Number(((cumResult / denom) * Number(monRateCalValue)).toFixed(2));
-    });
-  })();
+  const monCumulativeRates: (number | null)[] = [];
+  for (let i = 0, cumResult = 0, cumTarget = 0; i < monValues.length; i++) {
+    cumResult += Number(monValues[i]) || 0;
+    cumTarget += Number(monTargets[i]) || 0;
+    const denom = isMonthlyTarget ? cumTarget : Number(monTarget) || 0;
+    monCumulativeRates.push(monValues[i] === "" || !denom || !monRateCalValue
+      ? null
+      : Number(((cumResult / denom) * Number(monRateCalValue)).toFixed(2)));
+  }
   const monLevelSeries = monLevelValues.map((v) => {
     const idx = monLevels.indexOf(v);
     return idx >= 0 ? idx + 1 : null;
@@ -404,7 +400,7 @@ export default function KpiResultsPage() {
       key={cell}
       data-label={label}
       className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
-      onClick={() => setEditCell(cell)}
+      onClick={() => !monReadOnly && setEditCell(cell)}
     >
       {editCell === cell ? (
         <input
@@ -432,6 +428,7 @@ export default function KpiResultsPage() {
 
   const handleMonSave = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (monReadOnly) return;
     setMonError("");
     const months = monValues.map((v, i) => (isLevelCal
       ? { mon: i + 1, target: null, result: null, result_level: monLevelValues[i] || null }
@@ -583,7 +580,8 @@ export default function KpiResultsPage() {
   const pageStart = visibleResults.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const pageEnd = Math.min(currentPage * pageSize, visibleResults.length);
   const pagedResults = visibleResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const showManageColumn = visibleResults.some((row) => canEditKpi(row.kpi_id));
+  const showManageColumn = visibleResults.length > 0;
+  const canEditAny = visibleResults.some((row) => canEditKpi(row.kpi_id));
   const showChildToggleColumn = sortedResults.some((row) => childCountByParent.has(row.kpi_id));
   const tableColumnCount = 7 + (showManageColumn ? 1 : 0) + (showChildToggleColumn ? 1 : 0);
   const activeFilterCount = [
@@ -695,6 +693,7 @@ export default function KpiResultsPage() {
           <div className="loading-state">กำลังโหลดข้อมูลรายเดือน...</div>
         ) : (
           <form onSubmit={handleMonSave} className="login-form">
+            <fieldset disabled={monReadOnly} style={{ border: 0, margin: 0, minWidth: 0, padding: 0 }}>
             {monError && <div className="alert">{monError}</div>}
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="kpi-result-modal-meta flex items-center gap-3">
@@ -878,6 +877,15 @@ export default function KpiResultsPage() {
               </table>
             </div>
             )}
+            </fieldset>
+            {monReadOnly ? (
+              <div className="modal-actions modal-actions-end mt-4">
+                <button type="button" className="btn btn-soft kpi-result-cancel-btn" onClick={closeMonForm}>
+                  <X size={16} aria-hidden="true" />
+                  ปิด
+                </button>
+              </div>
+            ) : (
             <div className="modal-actions modal-actions-center mt-4">
               <div className="kpi-result-modal-actions">
                 <div className="kpi-result-modal-actions-start">
@@ -914,6 +922,7 @@ export default function KpiResultsPage() {
                 </div>
               </div>
             </div>
+            )}
             {isLevelCal ? (
               <MonthChart
                 title="ระดับรายเดือน"
@@ -1075,7 +1084,7 @@ export default function KpiResultsPage() {
               <th className="sortable-th" onClick={() => handleSort("result")}>ผลงาน</th>
               <th className="sortable-th" onClick={() => handleSort("percent")}>อัตรา</th>
               <th className="sortable-th" onClick={() => handleSort("status")}>สถานะ</th>
-              {showManageColumn && <th className="w-28">บันทึกผลงาน</th>}
+              {showManageColumn && <th className="w-28">{canEditAny ? "บันทึกผลงาน" : "รายละเอียด"}</th>}
               {showChildToggleColumn && <th className="w-12" aria-label="Toggle child KPI" />}
             </tr>
           </thead>
@@ -1188,6 +1197,17 @@ export default function KpiResultsPage() {
                         >
                           <CalendarPlus className="result-action-icon" size={13} aria-hidden="true" />
                           <span className="result-action-mobile-text">บันทึกผลงาน</span>
+                        </button>
+                      ) : isReporting ? (
+                        <button
+                          type="button"
+                          onClick={() => openMonForm(row.kpi_id, row.kpi_name, row.kpi_number)}
+                          className="btn btn-soft icon-action-btn"
+                          aria-label={`ดูรายละเอียดผลงาน ${row.kpi_name}`}
+                          title="ดูรายละเอียดผลงาน"
+                        >
+                          <Eye className="result-action-icon" size={13} aria-hidden="true" />
+                          <span className="result-action-mobile-text">ดูรายละเอียด</span>
                         </button>
                       ) : (
                         <span className="text-xs text-[#8a9891]">-</span>

@@ -14,7 +14,7 @@ export async function GET(
       .select("kpi_topic.*", "kpi_type.type as kpi_type")
       .where("kpi_topic.id", id)
       .first();
-    if (!topic) {
+    if (!topic || (topic.flag_show_guest === "no" && !(await getSession()))) {
       return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
     }
 

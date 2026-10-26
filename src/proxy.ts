@@ -13,6 +13,9 @@ const protectedPaths = ["/setting"];
 function isPublic(pathname: string, method: string): boolean {
   if (pathname === "/api/kpi-results" && method === "GET") return true;
   if (pathname === "/api/kpi-results/export" && method === "GET") return true;
+  // Read-only KPI detail for guests; the routes hide topics with flag_show_guest = 'no'.
+  if (pathname === "/api/kpi-result-mon" && method === "GET") return true;
+  if (/^\/api\/kpi-topics\/\d+$/.test(pathname) && method === "GET") return true;
   if (
     ["/api/departments", "/api/kpi-types", "/api/kpi-topics", "/api/missions"].includes(pathname) &&
     method === "GET"

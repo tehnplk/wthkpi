@@ -13,6 +13,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "ต้องระบุ kpi_id และ budget_year" }, { status: 400 });
     }
 
+    if (!(await getSession())) {
+      const topic = await db("kpi_topic").select("flag_show_guest").where({ id: kpiId }).first();
+      if (!topic || topic.flag_show_guest === "no") {
+        return NextResponse.json({ error: "ไม่พบข้อมูล" }, { status: 404 });
+      }
+    }
+
     const rows = await db("kpi_result_mon")
       .leftJoin("users", "kpi_result_mon.updated_by", "users.id")
       .select("kpi_result_mon.*", "users.fullname as updated_by_name")
