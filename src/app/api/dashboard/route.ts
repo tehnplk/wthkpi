@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       applyDepartmentFilter(
         db("kpi_type")
           .leftJoin("kpi_topic", function () {
-            this.on("kpi_type.id", "=", "kpi_topic.kpi_type_id")
+            this.on(db.raw("JSON_CONTAINS(kpi_topic.kpi_types, CAST(kpi_type.id AS CHAR))"))
               .andOn("kpi_topic.flag_reporting", "=", db.raw("?", ["yes"]))
               .andOn(db.raw(NON_CHILD_TOPIC_CONDITION));
           })
