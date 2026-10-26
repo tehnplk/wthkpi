@@ -60,7 +60,7 @@ export async function PUT(
     }
 
     if (session?.role !== "admin") {
-      const restrictedFields = ["name", "kpi_types", "kpi_number", "note", "criteria", "mission", "assignments", "flag_show_guest"];
+      const restrictedFields = ["name", "kpi_types", "kpi_number", "note", "criteria", "mission", "assignments", "flag_show_guest", "cal_type", "levels", "target_mode"];
       if (restrictedFields.some((field) => body[field] !== undefined)) {
         return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไขข้อมูลตั้งค่า KPI" }, { status: 403 });
       }
@@ -78,6 +78,9 @@ export async function PUT(
     if (body.criteria !== undefined) updateData.criteria = body.criteria || null;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.rate_cal_value !== undefined) updateData.rate_cal_value = body.rate_cal_value;
+    if (body.cal_type !== undefined) updateData.cal_type = body.cal_type === "level" ? "level" : "rate";
+    if (body.target_mode !== undefined) updateData.target_mode = body.target_mode === "month" ? "month" : "year";
+    if (body.levels !== undefined) updateData.levels = Array.isArray(body.levels) && body.levels.length > 0 ? JSON.stringify(body.levels) : null;
     if (body.flag_parent_or_child !== undefined) updateData.flag_parent_or_child = body.flag_parent_or_child || "parent";
     if (body.parent_kpi !== undefined) updateData.parent_kpi = body.parent_kpi || null;
     if (body.flag_reporting !== undefined) updateData.flag_reporting = body.flag_reporting || "yes";

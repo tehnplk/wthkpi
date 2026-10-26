@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
           mon: m.mon,
           target: m.target ?? null,
           result: m.result ?? null,
+          result_level: m.result_level || null,
           updated_at: trx.fn.now(),
           updated_by: session.id,
         };

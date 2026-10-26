@@ -17,6 +17,9 @@ export interface KpiTopic {
   mission: number[] | null;
   criteria: string | null;
   rate_cal_value: number | null;
+  cal_type: "rate" | "level";
+  target_mode: "year" | "month";
+  levels: string[] | string | null;
   flag_parent_or_child: "parent" | "child" | null;
   parent_kpi: number | null;
   flag_reporting: "yes" | "no";

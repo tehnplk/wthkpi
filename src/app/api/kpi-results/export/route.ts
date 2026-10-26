@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { resultAggSub } from "@/lib/kpi-result-agg";
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
 
@@ -103,13 +104,7 @@ export async function GET(request: NextRequest) {
       ? Number(searchParams.get("budget_year"))
       : thaiBudgetYear();
 
-    const aggSub = db("kpi_result_mon")
-      .select("kpi_id", "budget_year")
-      .max("target as target")
-      .sum("result as sum_result")
-      .where("budget_year", budgetYear)
-      .groupBy("kpi_id", "budget_year")
-      .as("agg");
+    const aggSub = resultAggSub(budgetYear);
 
     let query = db("kpi_topic")
       .leftJoin(aggSub, function () {

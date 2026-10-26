@@ -21,6 +21,8 @@ export interface KpiResultRow {
   target: number | null;
   result: number | null;
   percent: number | null;
+  cal_type: "rate" | "level";
+  latest_level: string | null;
   status: string | null;
   note: string | null;
   report_date: string | null;

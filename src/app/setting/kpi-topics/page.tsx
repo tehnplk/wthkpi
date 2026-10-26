@@ -6,6 +6,7 @@ import { Modal } from "@/components/Modal";
 import { MultiSelect } from "@/components/MultiSelect";
 import type { Department, KpiType, Mission } from "@/app/models/common";
 import type { KpiTopic as Topic, KpiTopicUser as User } from "@/app/models/kpi-topic";
+import { parseLevels } from "@/lib/levels";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
@@ -27,6 +28,9 @@ const integerDisplayValue = (value: string | number | null) => (
   value == null ? "" : String(Math.trunc(Number(value)))
 );
 
+type CalType = Topic["cal_type"];
+type TargetMode = Topic["target_mode"];
+
 export default function KpiTopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +40,10 @@ export default function KpiTopicsPage() {
   const [note, setNote] = useState("");
   const [criteria, setCriteria] = useState("");
   const [rateCalValue, setRateCalValue] = useState("");
+  const [calType, setCalType] = useState<CalType>("rate");
+  const [levels, setLevels] = useState<string[]>([]);
+  const [targetMode, setTargetMode] = useState<TargetMode>("year");
+  const [editTargetMode, setEditTargetMode] = useState<TargetMode>("year");
   const [flagReporting, setFlagReporting] = useState(true);
   const [flagShowGuest, setFlagShowGuest] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
@@ -46,6 +54,9 @@ export default function KpiTopicsPage() {
   const [editNote, setEditNote] = useState("");
   const [editCriteria, setEditCriteria] = useState("");
   const [editRateCalValue, setEditRateCalValue] = useState("");
+  const [editCalType, setEditCalType] = useState<CalType>("rate");
+  const [editLevels, setEditLevels] = useState<string[]>([]);
+  const [levelDraft, setLevelDraft] = useState("");
   const [editFlagReporting, setEditFlagReporting] = useState(true);
   const [editFlagShowGuest, setEditFlagShowGuest] = useState(true);
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
@@ -106,6 +117,10 @@ export default function KpiTopicsPage() {
     setEditNote("");
     setEditCriteria("");
     setEditRateCalValue("");
+    setEditCalType("rate");
+    setEditTargetMode("year");
+    setEditLevels([]);
+    setLevelDraft("");
     setEditFlagReporting(true);
     setEditFlagShowGuest(true);
     setEditAssignments([emptyAssignment()]);
@@ -122,6 +137,10 @@ export default function KpiTopicsPage() {
     setNote("");
     setCriteria("");
     setRateCalValue("");
+    setCalType("rate");
+    setTargetMode("year");
+    setLevels([]);
+    setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(true);
     setAssignments([emptyAssignment()]);
@@ -139,6 +158,10 @@ export default function KpiTopicsPage() {
     setNote("");
     setCriteria("");
     setRateCalValue(integerDisplayValue(topic.rate_cal_value));
+    setCalType(topic.cal_type || "rate");
+    setTargetMode(topic.target_mode || "year");
+    setLevels(parseLevels(topic.levels));
+    setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(topic.flag_show_guest !== "no");
     setSelectedMissions([]);
@@ -181,6 +204,10 @@ export default function KpiTopicsPage() {
     setEditNote(topic.note || "");
     setEditCriteria(topic.criteria || "");
     setEditRateCalValue(integerDisplayValue(topic.rate_cal_value));
+    setEditCalType(topic.cal_type || "rate");
+    setEditTargetMode(topic.target_mode || "year");
+    setEditLevels(parseLevels(topic.levels));
+    setLevelDraft("");
     setEditFlagReporting(topic.flag_reporting !== "no");
     setEditFlagShowGuest(topic.flag_show_guest !== "no");
     setEditSelectedMissions(getIdList(topic.mission));
@@ -211,7 +238,10 @@ export default function KpiTopicsPage() {
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
         criteria: criteria.trim() || null,
-        rate_cal_value: rateCalValue ? Number.parseInt(rateCalValue, 10) : null,
+        rate_cal_value: calType === "rate" && rateCalValue ? Number.parseInt(rateCalValue, 10) : null,
+        cal_type: calType,
+        target_mode: targetMode,
+        levels: calType === "level" ? levels : [],
         flag_parent_or_child: parentTopic ? "child" : "parent",
         parent_kpi: parentTopic?.id ?? null,
         flag_reporting: flagReporting ? "yes" : "no",
@@ -252,7 +282,10 @@ export default function KpiTopicsPage() {
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
         criteria: editCriteria.trim() || null,
-        rate_cal_value: editRateCalValue ? Number.parseInt(editRateCalValue, 10) : null,
+        rate_cal_value: editCalType === "rate" && editRateCalValue ? Number.parseInt(editRateCalValue, 10) : null,
+        cal_type: editCalType,
+        target_mode: editTargetMode,
+        levels: editCalType === "level" ? editLevels : [],
         flag_reporting: editFlagReporting ? "yes" : "no",
         flag_show_guest: editFlagShowGuest ? "yes" : "no",
         mission: editSelectedMissions,
@@ -400,6 +433,19 @@ export default function KpiTopicsPage() {
   const setFlagReportingFn = isEditing ? setEditFlagReporting : setFlagReporting;
   const currentFlagShowGuest = isEditing ? editFlagShowGuest : flagShowGuest;
   const setFlagShowGuestFn = isEditing ? setEditFlagShowGuest : setFlagShowGuest;
+  const currentCalType = isEditing ? editCalType : calType;
+  const setCalTypeFn = isEditing ? setEditCalType : setCalType;
+  const currentTargetMode = isEditing ? editTargetMode : targetMode;
+  const setTargetModeFn = isEditing ? setEditTargetMode : setTargetMode;
+  const currentLevels = isEditing ? editLevels : levels;
+  const setLevelsFn = isEditing ? setEditLevels : setLevels;
+
+  const addLevel = () => {
+    const value = levelDraft.trim();
+    if (!value || currentLevels.includes(value)) return;
+    setLevelsFn((prev) => [...prev, value]);
+    setLevelDraft("");
+  };
 
   const usersByDept = (deptId: number, assignedUserId: number) => {
     if (!deptId) return users;
@@ -585,7 +631,7 @@ export default function KpiTopicsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] gap-3 items-start">
             <div className="form-group">
-              <label htmlFor="topic-criteria">เกณฑ์การวัดผล</label>
+              <label htmlFor="topic-criteria">ค่าเป้าหมาย</label>
               <input
                 id="topic-criteria"
                 type="text"
@@ -597,7 +643,75 @@ export default function KpiTopicsPage() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="topic-rate-cal-value">การคำนวณอัตรา</label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor={currentCalType === "rate" ? "topic-rate-cal-value" : "topic-level-draft"}>วิธีการวัดผล</label>
+                <fieldset className="report-choice" aria-label="รูปแบบการวัดผล">
+                  {([["rate", "อัตรา"], ["level", "ระดับ"]] as const).map(([value, label]) => (
+                    <label
+                      key={value}
+                      className={currentCalType === value ? "report-choice-option report-choice-option-active report-choice-option-reporting" : "report-choice-option"}
+                    >
+                      <input
+                        type="radio"
+                        name="cal-type"
+                        checked={currentCalType === value}
+                        onChange={() => setCalTypeFn(value)}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </fieldset>
+              </div>
+              {currentCalType === "level" ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      id="topic-level-draft"
+                      type="text"
+                      autoComplete="off"
+                      value={levelDraft}
+                      onChange={(event) => setLevelDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addLevel();
+                        }
+                      }}
+                      placeholder="พิมพ์ระดับ แล้วกด Enter"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-soft assign-row-action-btn"
+                      onClick={addLevel}
+                      aria-label="เพิ่มระดับ"
+                      title="เพิ่มระดับ"
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                  {currentLevels.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {currentLevels.map((level, idx) => (
+                        <span
+                          key={level}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#e8f5ee] text-[#0b6f3c] border border-[#b4dfc4] font-medium"
+                        >
+                          {idx + 1}. {level}
+                          <button
+                            type="button"
+                            onClick={() => setLevelsFn((prev) => prev.filter((v) => v !== level))}
+                            className="hover:text-[#c24141] ml-0.5 focus:outline-none"
+                            aria-label={`ลบระดับ ${level}`}
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+              <div className="space-y-2">
               <div className="rate-formula-control">
                 <span className="rate-formula-text">(ผลงาน/จำนวนกลุ่มเป้าหมาย) x</span>
                 <input
@@ -617,6 +731,27 @@ export default function KpiTopicsPage() {
                   aria-label="ตัวเลขสำหรับคำนวณอัตรา"
                 />
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--muted)]">จำนวนกลุ่มเป้าหมาย</span>
+                <fieldset className="report-choice" aria-label="รูปแบบจำนวนกลุ่มเป้าหมาย">
+                  {([["year", "ครั้งเดียวทั้งปี"], ["month", "รายเดือน"]] as const).map(([value, label]) => (
+                    <label
+                      key={value}
+                      className={currentTargetMode === value ? "report-choice-option report-choice-option-active report-choice-option-reporting" : "report-choice-option"}
+                    >
+                      <input
+                        type="radio"
+                        name="target-mode"
+                        checked={currentTargetMode === value}
+                        onChange={() => setTargetModeFn(value)}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </fieldset>
+              </div>
+              </div>
+              )}
             </div>
           </div>
 

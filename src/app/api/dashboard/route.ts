@@ -4,6 +4,7 @@ import type { CountRow, StatusCountRow as StatusRow } from "@/app/models/common"
 import type { KpiTypeSummaryRow } from "@/app/models/dashboard";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { resultAggSub } from "@/lib/kpi-result-agg";
 
 function thaiBudgetYear(): number {
   const now = new Date();
@@ -11,16 +12,6 @@ function thaiBudgetYear(): number {
   return now.getMonth() >= 9 ? y + 1 : y;
 }
 
-function aggSub() {
-  const by = thaiBudgetYear();
-  return db("kpi_result_mon")
-    .select("kpi_id", "budget_year")
-    .max("target as target")
-    .sum("result as sum_result")
-    .where("budget_year", by)
-    .groupBy("kpi_id", "budget_year")
-    .as("agg");
-}
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
 const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes" };
@@ -104,7 +95,7 @@ export async function GET(request: NextRequest) {
 
       applyDepartmentFilter(
         db("kpi_topic")
-          .leftJoin(aggSub(), function () {
+          .leftJoin(resultAggSub(by), function () {
             this.on("kpi_topic.id", "=", "agg.kpi_id");
           })
           .leftJoin("kpi_type", "kpi_topic.kpi_type_id", "kpi_type.id")

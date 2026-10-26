@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { resultAggSub } from "@/lib/kpi-result-agg";
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
 
@@ -23,13 +24,7 @@ export async function GET(request: NextRequest) {
       ? Number(searchParams.get("budget_year"))
       : thaiBudgetYear();
 
-    const aggSub = db("kpi_result_mon")
-      .select("kpi_id", "budget_year")
-      .max("target as target")
-      .sum("result as sum_result")
-      .where("budget_year", budgetYear)
-      .groupBy("kpi_id", "budget_year")
-      .as("agg");
+    const aggSub = resultAggSub(budgetYear);
 
     let query = db("kpi_topic")
       .leftJoin(aggSub, function () {
@@ -52,6 +47,11 @@ export async function GET(request: NextRequest) {
         "kpi_topic.flag_parent_or_child",
         "kpi_topic.parent_kpi",
         "kpi_topic.flag_reporting",
+        "kpi_topic.cal_type",
+        db.raw(
+          "(SELECT r.result_level FROM kpi_result_mon r WHERE r.kpi_id = kpi_topic.id AND r.budget_year = ? AND r.result_level IS NOT NULL ORDER BY r.mon DESC LIMIT 1) as latest_level",
+          [budgetYear]
+        ),
         "kpi_topic.criteria as topic_criteria",
         "kpi_topic.note as topic_note"
       );

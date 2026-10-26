@@ -21,6 +21,8 @@ import { Modal } from "@/components/Modal";
 import type { Department, KpiType, Mission } from "@/app/models/common";
 import type { KpiTopic as Topic } from "@/app/models/kpi-topic";
 import type { KpiResultRow as Result } from "@/app/models/kpi-result";
+import { MonthChart } from "@/components/MonthChart";
+import { parseLevels } from "@/lib/levels";
 import { confirmAction, notifyError, notifySuccess } from "@/lib/notice";
 import { applySort, SortDir, toggleSort } from "@/lib/sort";
 
@@ -91,6 +93,9 @@ function formatDecimal(value: string | number | null) {
 const integerInputValue = (value: string) => value.replace(/\D/g, "");
 const CHILD_ROW_TRANSITION_MS = 320;
 
+const YEAR_TARGET_CELL = -1;
+const MONTH_TARGET_CELL = 100;
+
 const MONTHS = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย."];
 
 interface CurrentUser {
@@ -105,6 +110,7 @@ interface MonthlyResultRow {
   mon: number;
   target: string | number | null;
   result: string | number | null;
+  result_level: string | null;
   updated_at: string | null;
   updated_by_name: string | null;
 }
@@ -173,6 +179,11 @@ export default function KpiResultsPage() {
   const [monTarget, setMonTarget] = useState("");
   const [monRateCalValue, setMonRateCalValue] = useState("");
   const [monValues, setMonValues] = useState<(string)[]>(Array(12).fill(""));
+  const [monCalType, setMonCalType] = useState<Topic["cal_type"]>("rate");
+  const [monTargetMode, setMonTargetMode] = useState<Topic["target_mode"]>("year");
+  const [monTargets, setMonTargets] = useState<string[]>(Array(12).fill(""));
+  const [monLevels, setMonLevels] = useState<string[]>([]);
+  const [monLevelValues, setMonLevelValues] = useState<string[]>(Array(12).fill(""));
   const [monLastUpdatedAt, setMonLastUpdatedAt] = useState<string | null>(null);
   const [monLastUpdatedBy, setMonLastUpdatedBy] = useState<string | null>(null);
   const [monLoading, setMonLoading] = useState(false);
@@ -293,6 +304,8 @@ export default function KpiResultsPage() {
       const rows = await resMon.json();
       const topicData = resTopic.ok ? await resTopic.json() : null;
       const vals = Array(12).fill("");
+      const levelVals = Array(12).fill("");
+      const targetVals = Array(12).fill("");
       let tg = "";
       if (Array.isArray(rows)) {
         let latestRow: MonthlyResultRow | null = null;
@@ -301,6 +314,8 @@ export default function KpiResultsPage() {
           const idx = row.mon - 1;
           if (idx >= 0 && idx < 12) {
             vals[idx] = row.result != null ? String(row.result) : "";
+            levelVals[idx] = row.result_level || "";
+            targetVals[idx] = row.target != null ? String(row.target) : "";
             if (!tg && row.target != null) tg = String(row.target);
           }
           if (row.updated_at && (!latestRow?.updated_at || row.updated_at > latestRow.updated_at)) {
@@ -311,6 +326,11 @@ export default function KpiResultsPage() {
         setMonLastUpdatedBy(latestRow?.updated_by_name || null);
       }
       setMonValues(vals);
+      setMonLevelValues(levelVals);
+      setMonCalType(topicData?.cal_type || "rate");
+      setMonTargetMode(topicData?.target_mode || "year");
+      setMonTargets(targetVals);
+      setMonLevels(parseLevels(topicData?.levels));
       setMonTarget(tg);
       setMonRateCalValue(topicData?.rate_cal_value != null ? String(topicData.rate_cal_value) : "");
       setMonKpiCriteria(topicData?.criteria || "");
@@ -330,6 +350,11 @@ export default function KpiResultsPage() {
     setMonTarget("");
     setMonRateCalValue("");
     setMonValues(Array(12).fill(""));
+    setMonLevelValues(Array(12).fill(""));
+    setMonCalType("rate");
+    setMonTargetMode("year");
+    setMonTargets(Array(12).fill(""));
+    setMonLevels([]);
     setMonLastUpdatedAt(null);
     setMonLastUpdatedBy(null);
     setMonError("");
@@ -345,22 +370,79 @@ export default function KpiResultsPage() {
     if (!confirmed) return;
 
     setMonValues(Array(12).fill(""));
+    setMonLevelValues(Array(12).fill(""));
     setMonTopicStatus("pending");
     setEditCell(null);
     notifySuccess("ล้างผลงานแล้ว");
   };
 
   const monSum = monValues.reduce((acc, v) => acc + (Number(v) || 0), 0);
-  const monRate = monTarget && Number(monTarget) && monRateCalValue ? ((monSum / Number(monTarget)) * Number(monRateCalValue)).toFixed(2) : null;
+  const isMonthlyTarget = monTargetMode === "month";
+  const monTargetSum = monTargets.reduce((acc, v) => acc + (Number(v) || 0), 0);
+  const monTargetTotal = isMonthlyTarget ? monTargetSum : Number(monTarget) || 0;
+  const monRate = monTargetTotal && monRateCalValue ? ((monSum / monTargetTotal) * Number(monRateCalValue)).toFixed(2) : null;
+  const isLevelCal = monCalType === "level";
+
+  const monCumulativeRates = (() => {
+    let cumResult = 0;
+    let cumTarget = 0;
+    return monValues.map((v, i) => {
+      cumResult += Number(v) || 0;
+      cumTarget += Number(monTargets[i]) || 0;
+      const denom = isMonthlyTarget ? cumTarget : Number(monTarget) || 0;
+      if (v === "" || !denom || !monRateCalValue) return null;
+      return Number(((cumResult / denom) * Number(monRateCalValue)).toFixed(2));
+    });
+  })();
+  const monLevelSeries = monLevelValues.map((v) => {
+    const idx = monLevels.indexOf(v);
+    return idx >= 0 ? idx + 1 : null;
+  });
+
+  const renderEditCell = (cell: number, label: string, value: string, onChange: (value: string) => void) => (
+    <td
+      key={cell}
+      data-label={label}
+      className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
+      onClick={() => setEditCell(cell)}
+    >
+      {editCell === cell ? (
+        <input
+          type="number"
+          step="0.01"
+          autoComplete="off"
+          value={value}
+          autoFocus
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={() => setEditCell(null)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") setEditCell(null);
+            if (e.key === "Escape") setEditCell(null);
+          }}
+          className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none"
+          style={{ minWidth: "96px", fontSize: "10px" }}
+        />
+      ) : (
+        formatDecimal(value)
+      )}
+    </td>
+  );
+  const monLatestLevel = [...monLevelValues].reverse().find(Boolean) || null;
 
   const handleMonSave = async (event: React.FormEvent) => {
     event.preventDefault();
     setMonError("");
-    const months = monValues.map((v, i) => ({
-      mon: i + 1,
-      target: monTarget ? Number(monTarget) : null,
-      result: v ? Number(v) : null,
-    }));
+    const months = monValues.map((v, i) => (isLevelCal
+      ? { mon: i + 1, target: null, result: null, result_level: monLevelValues[i] || null }
+      : {
+          mon: i + 1,
+          target: isMonthlyTarget
+            ? (monTargets[i] ? Number(monTargets[i]) : null)
+            : (monTarget ? Number(monTarget) : null),
+          result: v ? Number(v) : null,
+          result_level: null,
+        }));
 
     try {
       const [resMon, resTopic] = await Promise.all([
@@ -372,10 +454,9 @@ export default function KpiResultsPage() {
         fetch(`/api/kpi-topics/${monKpiId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status: monTopicStatus,
-            rate_cal_value: monRateCalValue ? Number(monRateCalValue) : null,
-          }),
+          body: JSON.stringify(isLevelCal
+            ? { status: monTopicStatus }
+            : { status: monTopicStatus, rate_cal_value: monRateCalValue ? Number(monRateCalValue) : null }),
         }),
       ]);
       if (!resMon.ok) {
@@ -604,7 +685,7 @@ export default function KpiResultsPage() {
         subtitle={
           monKpiCriteria || monKpiNote ? (
             <div className="space-y-0.5">
-              {monKpiCriteria && <div>เกณฑ์การวัดผล : {monKpiCriteria}</div>}
+              {monKpiCriteria && <div>ค่าเป้าหมาย : {monKpiCriteria}</div>}
               {monKpiNote && <div className="text-xs font-normal text-[var(--muted)] opacity-75">หมายเหตุ : {monKpiNote}</div>}
             </div>
           ) : undefined
@@ -629,7 +710,12 @@ export default function KpiResultsPage() {
                   />
                 </div>
                 <div className="form-group mb-0">
-                  <label htmlFor="mon-rate-cal-value">การคำนวณอัตรา</label>
+                  <label htmlFor={isLevelCal ? undefined : "mon-rate-cal-value"}>วิธีการวัดผล</label>
+                  {isLevelCal ? (
+                    <div className="rate-formula-control">
+                      <span className="rate-formula-text">ระดับ : {monLevels.join(" / ") || "-"}</span>
+                    </div>
+                  ) : (
                   <div className="rate-formula-control">
                     <span className="rate-formula-text">(ผลงาน/จำนวนกลุ่มเป้าหมาย) x</span>
                     <input
@@ -646,6 +732,7 @@ export default function KpiResultsPage() {
                       aria-label="ตัวเลขสำหรับคำนวณอัตรา"
                     />
                   </div>
+                  )}
                 </div>
               </div>
               <div className="toggle-group kpi-result-status-toggle-desktop">
@@ -669,6 +756,92 @@ export default function KpiResultsPage() {
             <div className="text-xs text-[#64746d] mb-3">
               ปรับปรุงล่าสุด : {monLastUpdatedBy || "-"} : {formatThaiDateTime(monLastUpdatedAt)}
             </div>
+            {isLevelCal ? (
+            <div className="data-table-wrap">
+              <table className="data-table text-sm">
+                <thead>
+                  <tr>
+                    <th colSpan={MONTHS.length} className="kpi-mon-header-center">ผลงาน (ระดับ)</th>
+                    <th className="w-24 kpi-mon-header-center" rowSpan={2}>ระดับล่าสุด</th>
+                  </tr>
+                  <tr>
+                    {MONTHS.map((m) => (
+                      <th key={m} className="w-16 kpi-mon-header-center">{m}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {monLevelValues.map((v, i) => (
+                      <td key={i} data-label={MONTHS[i]} className="text-center" style={{ padding: "0.5rem 0.2rem" }}>
+                        <select
+                          value={v}
+                          onChange={(e) => {
+                            const next = [...monLevelValues];
+                            next[i] = e.target.value;
+                            setMonLevelValues(next);
+                          }}
+                          aria-label={`ระดับเดือน ${MONTHS[i]}`}
+                          style={{ fontSize: "11px", padding: "0.35rem 0.15rem", minWidth: "4.25rem" }}
+                        >
+                          <option value="">-</option>
+                          {/* keep a saved level visible even if it was later removed from the topic */}
+                          {(v && !monLevels.includes(v) ? [...monLevels, v] : monLevels).map((level) => (
+                            <option key={level} value={level}>{level}</option>
+                          ))}
+                        </select>
+                      </td>
+                    ))}
+                    <td data-label="ระดับล่าสุด" className="text-center text-[#17211d] font-semibold">
+                      {monLatestLevel || "-"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            ) : isMonthlyTarget ? (
+            <div className="data-table-wrap">
+              <table className="data-table text-sm">
+                <thead>
+                  <tr>
+                    <th className="w-20 kpi-mon-header-center" />
+                    {MONTHS.map((m) => (
+                      <th key={m} className="w-16 kpi-mon-header-center">{m}</th>
+                    ))}
+                    <th className="w-24 kpi-mon-header-center">รวม</th>
+                    <th className="w-20 kpi-mon-header-center">อัตรา</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th className="kpi-mon-header-center whitespace-nowrap">เป้าหมาย</th>
+                    {monTargets.map((v, i) => renderEditCell(MONTH_TARGET_CELL + i, MONTHS[i], v, (value) => {
+                      const next = [...monTargets];
+                      next[i] = value;
+                      setMonTargets(next);
+                    }))}
+                    <td data-label="รวมกลุ่มเป้าหมาย" className="text-center text-[#17211d]">
+                      {formatDecimal(monTargetSum)}
+                    </td>
+                    <td data-label="อัตรา" className="text-center" rowSpan={2}>
+                      {formatDecimal(monRate)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th className="kpi-mon-header-center whitespace-nowrap">ผลงาน</th>
+                    {monValues.map((v, i) => renderEditCell(i, MONTHS[i], v, (value) => {
+                      const next = [...monValues];
+                      next[i] = value;
+                      setMonValues(next);
+                    }))}
+                    <td data-label="รวมผลงาน" className="text-center text-[#17211d]">
+                      {formatDecimal(monSum)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            ) : (
             <div className="data-table-wrap">
               <table className="data-table text-sm">
                 <thead>
@@ -688,64 +861,12 @@ export default function KpiResultsPage() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td
-                      data-label="จำนวนกลุ่มเป้าหมาย"
-                      className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
-                      onClick={() => setEditCell(-1)}
-                    >
-                      {editCell === -1 ? (
-                        <input
-                          type="number"
-                          step="0.01"
-                          autoComplete="off"
-                          value={monTarget}
-                          autoFocus
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => setMonTarget(e.target.value)}
-                          onBlur={() => setEditCell(null)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") setEditCell(null);
-                            if (e.key === "Escape") setEditCell(null);
-                          }}
-                          className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none"
-                          style={{ minWidth: "96px", fontSize: "10px" }}
-                        />
-                      ) : (
-                        formatDecimal(monTarget)
-                      )}
-                    </td>
-                    {monValues.map((v, i) => (
-                      <td
-                        key={i}
-                        data-label={MONTHS[i]}
-                        className="text-center cursor-pointer hover:bg-[#f0f6f2] min-w-[80px]"
-                        onClick={() => setEditCell(i)}
-                      >
-                        {editCell === i ? (
-                          <input
-                            type="number"
-                            step="0.01"
-                            autoComplete="off"
-                            value={v}
-                            autoFocus
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) => {
-                              const next = [...monValues];
-                              next[i] = e.target.value;
-                              setMonValues(next);
-                            }}
-                            onBlur={() => setEditCell(null)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") setEditCell(null);
-                              if (e.key === "Escape") setEditCell(null);
-                            }}
-                            className="w-full text-center px-0.5 py-1 border border-[#71c99a] rounded outline-none" style={{ minWidth: "96px", fontSize: "10px" }}
-                          />
-                        ) : (
-                          formatDecimal(v)
-                        )}
-                      </td>
-                    ))}
+                    {renderEditCell(YEAR_TARGET_CELL, "จำนวนกลุ่มเป้าหมาย", monTarget, setMonTarget)}
+                    {monValues.map((v, i) => renderEditCell(i, MONTHS[i], v, (value) => {
+                      const next = [...monValues];
+                      next[i] = value;
+                      setMonValues(next);
+                    }))}
                     <td data-label="รวม" className="text-center text-[#17211d]">
                       {formatDecimal(monSum)}
                     </td>
@@ -756,6 +877,7 @@ export default function KpiResultsPage() {
                 </tbody>
               </table>
             </div>
+            )}
             <div className="modal-actions modal-actions-center mt-4">
               <div className="kpi-result-modal-actions">
                 <div className="kpi-result-modal-actions-start">
@@ -792,6 +914,17 @@ export default function KpiResultsPage() {
                 </div>
               </div>
             </div>
+            {isLevelCal ? (
+              <MonthChart
+                title="ระดับรายเดือน"
+                kind="bar"
+                labels={MONTHS}
+                values={monLevelSeries}
+                levelNames={monLevels}
+              />
+            ) : (
+              <MonthChart title="อัตราสะสม" kind="line" labels={MONTHS} values={monCumulativeRates} />
+            )}
           </form>
         )}
       </Modal>
@@ -1018,7 +1151,13 @@ export default function KpiResultsPage() {
                     {isReporting && row.result != null ? <span className="number-badge">{row.result}</span> : "-"}
                   </td>
                   <td data-label="อัตรา" className="result-value-cell">
-                    {isReporting && row.percent != null ? (
+                    {isReporting && row.cal_type === "level" ? (
+                      row.latest_level ? (
+                        <span className={`number-badge number-badge-rate ${rateBadgeClass(row.status)}`}>
+                          {row.latest_level}
+                        </span>
+                      ) : "-"
+                    ) : isReporting && row.percent != null ? (
                       <span className={`number-badge number-badge-rate ${rateBadgeClass(row.status)}`}>
                         {row.percent}
                       </span>
