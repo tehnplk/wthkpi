@@ -1,37 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7faf9;
-  --foreground: #17211d;
-  --muted: #64746d;
-  --line: #dfe8e3;
+  --background: #eef2f8;
+  --foreground: #16233a;
+  --muted: #64748b;
+  --line: #e2e8f0;
   --panel: #ffffff;
-  --panel-soft: #f2f7f4;
+  --panel-soft: #f4f7fb;
   --input: #ffffff;
-  --hover: #fbfdfc;
-  --soft-control: #eef6f2;
-  --soft-control-hover: #e1f0ea;
-  --accent: #0f8f72;
-  --accent-strong: #08735b;
-  --danger: #d84b4b;
+  --hover: #f8fafd;
+  --soft-control: #e8eef8;
+  --soft-control-hover: #dbe5f4;
+  --accent: #1e3a6e;
+  --accent-strong: #132a52;
+  --danger: #ef4444;
   --warning: #b87b11;
+  --navy-gradient: linear-gradient(135deg, #0f1f3d 0%, #1e3a6e 100%);
+  --shadow: 0 6px 20px rgba(15, 31, 61, 0.07);
 }
 
 [data-theme="dark"] {
-  --background: #101614;
-  --foreground: #edf6f2;
-  --muted: #9fb0a9;
-  --line: #26352f;
-  --panel: #17211d;
-  --panel-soft: #1d2a25;
-  --input: #111a16;
-  --hover: #1b2823;
-  --soft-control: #20342d;
-  --soft-control-hover: #28443a;
-  --accent: #27d7a5;
-  --accent-strong: #66ebc5;
+  --background: #0b1220;
+  --foreground: #e8eef8;
+  --muted: #94a3b8;
+  --line: #1f2b40;
+  --panel: #121b2e;
+  --panel-soft: #172238;
+  --input: #0e1628;
+  --hover: #18233a;
+  --soft-control: #1c2a45;
+  --soft-control-hover: #24365a;
+  --accent: #60a5fa;
+  --accent-strong: #93c5fd;
   --danger: #ff7a7a;
   --warning: #f3c762;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -84,8 +87,8 @@ textarea::placeholder {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #8ecfbe;
-  box-shadow: 0 0 0 3px rgba(15, 143, 114, 0.12);
+  border-color: #93b4e6;
+  box-shadow: 0 0 0 3px rgba(30, 58, 110, 0.12);
 }
 
 button {
@@ -110,6 +113,22 @@ button:disabled {
   top: 1rem;
   width: 3.65rem;
   z-index: 90;
+}
+
+/* In the app it sits at the right end of .page-heading and scrolls with it. */
+.content-wrap {
+  position: relative;
+}
+
+.content-wrap > .theme-toggle {
+  position: absolute;
+  z-index: 5;
+}
+
+.mobile-app-bar .theme-toggle {
+  margin-left: auto;
+  margin-right: 0.5rem;
+  position: static;
 }
 
 .theme-toggle-track {
@@ -165,35 +184,40 @@ button:disabled {
 }
 
 ::selection {
-  background: #bcebdd;
-  color: #073d32;
+  background: #bfd3f2;
+  color: #0f1f3d;
 }
 
 .app-shell {
   height: 100vh;
   min-height: 100vh;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(236, 248, 243, 0.82), rgba(247, 250, 249, 0) 320px),
-    var(--background);
+  background: var(--background);
   position: relative;
 }
 
-[data-theme="dark"] .app-shell {
-  background:
-    linear-gradient(180deg, rgba(39, 215, 165, 0.1), rgba(16, 22, 20, 0) 320px),
-    var(--background);
-}
-
+/* Sidebar is always navy: re-scope the tokens so everything inside follows. */
 .sidebar {
-  background: var(--panel);
-  border-right: 1px solid var(--line);
+  --panel: transparent;
+  --panel-soft: rgba(255, 255, 255, 0.08);
+  --background: rgba(255, 255, 255, 0.08);
+  --foreground: #ffffff;
+  --muted: #b6c2d9;
+  --line: rgba(255, 255, 255, 0.1);
+  --soft-control: rgba(255, 255, 255, 0.12);
+  --soft-control-hover: rgba(255, 255, 255, 0.2);
+  --accent: #60a5fa;
+  --accent-strong: #ffffff;
+  background: linear-gradient(180deg, #0f1f3d 0%, #1a3260 100%);
+  color: var(--foreground);
+  border-right: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  transition: width 180ms ease, min-width 180ms ease, padding 180ms ease;
-  width: fit-content;
+  transition: width 200ms ease;
+  white-space: nowrap;
+  width: 15rem;
 }
 
 .sidebar-shell {
@@ -226,41 +250,43 @@ button:disabled {
   display: none;
 }
 
+/* Round handle straddling the sidebar's right edge, level with the brand row. */
 .sidebar-toggle {
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  color: var(--muted);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(15, 31, 61, 0.18);
+  color: var(--accent);
   display: inline-flex;
-  height: 2rem;
+  height: 1.6rem;
   justify-content: center;
   outline: none;
+  padding: 0;
   position: absolute;
-  right: 1.5rem;
-  top: 1rem;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
-  width: 2rem;
+  right: -0.8rem;
+  top: 1.45rem;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  width: 1.6rem;
   z-index: 30;
 }
 
 .sidebar-toggle:hover {
-  background: var(--background);
-  border-color: var(--accent);
-  color: var(--accent-strong);
+  background: var(--accent);
+  color: #ffffff;
+  transform: scale(1.08);
 }
 
 .sidebar-toggle:focus-visible {
-  border-color: #8ecfbe;
-  box-shadow: 0 0 0 3px rgba(15, 143, 114, 0.12);
+  box-shadow: 0 0 0 3px #93b4e6;
 }
 
 .sidebar-collapsed .sidebar {
   width: 4.5rem !important;
 }
 
-.sidebar-collapsed .sidebar > div:first-child {
-  display: none;
+.sidebar-collapsed .sidebar-brand > div {
+  justify-content: center;
 }
 
 .sidebar-collapsed .sidebar .eyebrow,
@@ -275,6 +301,10 @@ button:disabled {
   width: 0;
 }
 
+.sidebar-collapsed .sidebar h1 {
+  display: none;
+}
+
 .sidebar-collapsed .sidebar > div {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -285,7 +315,7 @@ button:disabled {
   gap: 0.35rem;
   padding-left: 0;
   padding-right: 0;
-  padding-top: 4.5rem;
+  padding-top: 0.75rem;
 }
 
 .sidebar-collapsed .nav-link {
@@ -481,11 +511,25 @@ button:disabled {
 }
 
 .page-heading {
-  align-items: flex-end;
+  align-items: center;
+  background: var(--navy-gradient);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 31, 61, 0.18);
   display: flex;
   gap: 1rem;
   justify-content: space-between;
   margin-bottom: 1.25rem;
+  padding: 1.1rem 6rem 1.1rem 1.5rem;
+}
+
+.page-heading .page-title {
+  color: #ffffff;
+}
+
+.page-heading .icon-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .eyebrow {
@@ -512,7 +556,9 @@ button:disabled {
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .panel-pad {
@@ -522,103 +568,88 @@ button:disabled {
 .metric-card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
   padding: 1rem;
 }
 
-.metric-card-topics {
-  border-left: 0.35rem solid #46e4f0;
+/* Solid colour cards: white text, soft circle in the corner. */
+.metric-card-topics,
+.metric-card-results,
+.metric-card-status,
+.metric-card-pending,
+.metric-card-type {
+  --metric-text: #ffffff;
+  border: 0;
+  box-shadow: 0 10px 24px rgba(15, 31, 61, 0.12);
+  color: var(--metric-text);
+  overflow: hidden;
+  position: relative;
 }
 
-.metric-card-results {
-  border-left: 0.35rem solid #19e097;
+.metric-card-topics::after,
+.metric-card-results::after,
+.metric-card-status::after,
+.metric-card-pending::after,
+.metric-card-type::after {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  content: "";
+  height: 7rem;
+  pointer-events: none;
+  position: absolute;
+  right: -1.75rem;
+  top: -2rem;
+  width: 7rem;
 }
 
-.metric-card-status {
-  border-left: 0.35rem solid #fa3f32;
-}
+.metric-card-topics { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+.metric-card-results { background: linear-gradient(135deg, #10b981, #34d399); }
+.metric-card-pending { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.metric-card-status { background: linear-gradient(135deg, #ef4444, #f87171); }
 
-.metric-card-pending {
-  border-left: 0.35rem solid #eff545;
+.metric-card-topics .metric-label,
+.metric-card-results .metric-label,
+.metric-card-status .metric-label,
+.metric-card-pending .metric-label,
+.metric-card-type .metric-label,
+.metric-card-topics .metric-value,
+.metric-card-results .metric-value,
+.metric-card-status .metric-value,
+.metric-card-pending .metric-value,
+.metric-card-type .metric-value,
+.metric-card-type .metric-sub {
+  color: var(--metric-text);
+  position: relative;
+  z-index: 1;
 }
 
 .metric-card-topics .metric-head svg,
 .metric-card-results .metric-head svg,
 .metric-card-status .metric-head svg,
-.metric-card-pending .metric-head svg {
-  border-radius: 999px;
-  box-sizing: content-box;
-  padding: 0.42rem;
-}
-
-.metric-card-topics .metric-head svg {
-  background: rgba(70, 228, 240, 0.2);
-  color: #087782;
-}
-
-.metric-card-results .metric-head svg {
-  background: rgba(25, 224, 151, 0.18);
-  color: #087b52;
-}
-
-.metric-card-status .metric-head svg {
-  background: rgba(25, 224, 151, 0.18);
-  color: #087b52;
-}
-
-.metric-card-pending .metric-head svg {
-  background: rgba(239, 245, 69, 0.35);
-  color: #746f00;
-}
-
-.metric-card-type {
+.metric-card-pending .metric-head svg,
+.metric-card-type .metric-head svg {
+  color: rgba(255, 255, 255, 0.85);
+  height: 1.9rem;
   position: relative;
+  width: 1.9rem;
+  z-index: 1;
 }
 
-.metric-card-type::before {
-  border-radius: 999px;
-  content: "";
-  height: 0.32rem;
-  left: 1rem;
-  position: absolute;
-  right: 1rem;
-  top: 0.55rem;
+.metric-card-type > * {
+  position: relative;
+  z-index: 1;
 }
 
-.metric-card-type .metric-head {
-  margin-top: 0.25rem;
-}
+.metric-card-type-0 { background: linear-gradient(135deg, #10b981, #34d399); }
+.metric-card-type-1 { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+.metric-card-type-2 { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.metric-card-type-3 { background: linear-gradient(135deg, #ef4444, #f87171); }
+.metric-card-type-4 { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+.metric-card-type-5 { background: linear-gradient(135deg, #64748b, #94a3b8); }
 
-.metric-card-type-0 { border-color: #dfe8e3; }
-.metric-card-type-0::before { background: #19e097; }
-.metric-card-type-1 { border-color: #dfe8e3; }
-.metric-card-type-1::before { background: #46e4f0; }
-.metric-card-type-2 { border-color: #dfe8e3; }
-.metric-card-type-2::before { background: #eff545; }
-.metric-card-type-3 { border-color: #dfe8e3; }
-.metric-card-type-3::before { background: #fa3f32; }
-.metric-card-type-4 { border-color: #dfe8e3; }
-.metric-card-type-4::before { background: #644ca8; }
-.metric-card-type-5 { border-color: #dfe8e3; }
-.metric-card-type-5::before { background: #2979a0; }
-
-.metric-card-type-quality::before {
-  background: #19e097;
-}
-
-.metric-card-type-quality .metric-label,
-.metric-card-type-quality .metric-head svg {
-  color: #087b52;
-}
-
-.metric-card-type-strategy::before {
-  background: #fa3f32;
-}
-
-.metric-card-type-strategy .metric-label,
-.metric-card-type-strategy .metric-head svg {
-  color: #c62f25;
-}
+.metric-card-type-quality { background: linear-gradient(135deg, #10b981, #34d399); }
+.metric-card-type-strategy { background: linear-gradient(135deg, #6366f1, #818cf8); }
 
 .metric-head {
   align-items: center;
@@ -629,14 +660,14 @@ button:disabled {
 
 .metric-label {
   color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .metric-value {
   color: var(--foreground);
   font-size: 2rem;
-  font-weight: 760;
+  font-weight: 800;
   line-height: 1;
   margin-top: 0.6rem;
 }
@@ -773,8 +804,8 @@ button:disabled {
 }
 
 .result-filter-search:focus-within {
-  border-color: #8ecfbe;
-  box-shadow: 0 0 0 3px rgba(15, 143, 114, 0.12);
+  border-color: #93b4e6;
+  box-shadow: 0 0 0 3px rgba(30, 58, 110, 0.12);
 }
 
 .result-filter-search input {
@@ -1722,8 +1753,8 @@ button:disabled {
 }
 
 .rate-formula-control:focus-within {
-  border-color: #8ecfbe;
-  box-shadow: 0 0 0 3px rgba(15, 143, 114, 0.12);
+  border-color: #93b4e6;
+  box-shadow: 0 0 0 3px rgba(30, 58, 110, 0.12);
 }
 
 .rate-formula-text {
@@ -2021,10 +2052,8 @@ button:disabled {
     z-index: 45;
   }
 
-  .theme-toggle {
-    right: 4.75rem;
-    top: 1rem;
-    z-index: 46;
+  .content-wrap > .theme-toggle {
+    display: none;
   }
 
   .mobile-brand {
@@ -2230,6 +2259,7 @@ button:disabled {
     align-items: flex-start;
     flex-direction: column;
     margin-bottom: 1rem;
+    padding-right: 1.5rem;
   }
 
   .page-title {

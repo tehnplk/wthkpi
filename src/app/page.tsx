@@ -161,7 +161,7 @@ export default function DashboardPage() {
             <p className="metric-label">รอดำเนินการ</p>
             <Clock3 size={18} aria-hidden="true" />
           </div>
-          <p className="metric-value text-[#9a6a12]">{data.pendingCount}</p>
+          <p className="metric-value">{data.pendingCount}</p>
         </div>
         <div className="metric-card metric-card-status">
           <div className="metric-head">
@@ -169,9 +169,9 @@ export default function DashboardPage() {
             <ListChecks size={18} aria-hidden="true" />
           </div>
           <p className="metric-value">
-            <span className="text-[#14764a]">{data.passCount}</span>
-            <span className="text-[#9aa8a2] mx-1">/</span>
-            <span className="text-[#c24141]">{data.failCount}</span>
+            <span>{data.passCount}</span>
+            <span className="mx-1 opacity-60">/</span>
+            <span>{data.failCount}</span>
           </p>
         </div>
       </div>
@@ -192,7 +192,7 @@ export default function DashboardPage() {
             <div className="flex items-end justify-between gap-3 mt-3">
               <div>
                 <p className="metric-value">{summary.totalTopics}</p>
-                <p className="text-xs text-[#64746d] mt-1">ตัวชี้วัด</p>
+                <p className="metric-sub text-xs mt-1">ตัวชี้วัด</p>
               </div>
               <div className="min-w-24 space-y-1">
                 <div className="flex items-center justify-between gap-3 rounded border border-[#22a35f] bg-[#d9f5e4] px-2 py-1 text-xs font-bold text-[#0b6f3c]">

@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { BarChart3 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SidebarNav } from "@/components/SidebarNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
 import "./globals.css";
 import "sweetalert2/dist/sweetalert2.min.css";
@@ -59,7 +58,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeToggle />
         <AppShell sidebar={sidebar}>{children}</AppShell>
       </body>
     </html>

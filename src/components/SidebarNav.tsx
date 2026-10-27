@@ -66,6 +66,7 @@ export function SidebarNav() {
     <nav className="sidebar-nav flex flex-col gap-0 px-3 pb-4 flex-1">
       <Link
         href="/"
+        title="แดชบอร์ด"
         className={`nav-link flex items-center gap-2.5 px-3 py-2 text-sm font-medium ${
           isActive("/") ? "nav-link-active" : ""
         }`}
@@ -76,6 +77,7 @@ export function SidebarNav() {
 
       <Link
         href="/kpi-results"
+        title="ผลงานตัวชี้วัด"
         className={`nav-link flex items-center gap-2.5 px-3 py-2 text-sm font-medium ${
           isActive("/kpi-results") ? "nav-link-active" : ""
         }`}
@@ -92,6 +94,7 @@ export function SidebarNav() {
           <div key={group.label}>
             <button
               type="button"
+              title={group.label}
               className="nav-group-header flex items-center gap-2.5 px-3 py-2 text-sm font-medium"
               onClick={() => toggleGroup(group.label)}
             >
@@ -113,6 +116,7 @@ export function SidebarNav() {
                     <Link
                       key={item.href}
                       href={item.href}
+                      title={item.label}
                       className={`nav-link nav-sub-link flex items-center gap-2.5 px-3 py-1.5 text-sm font-medium ${
                         isActive(item.href) ? "nav-link-active" : ""
                       }`}

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { BarChart3, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function AppShell({
   children,
@@ -18,6 +19,21 @@ export function AppShell({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    try {
+      if (localStorage.getItem("wthkpi-sidebar") === "collapsed") queueMicrotask(() => setSidebarCollapsed(true));
+    } catch {}
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((value) => {
+      try {
+        localStorage.setItem("wthkpi-sidebar", value ? "expanded" : "collapsed");
+      } catch {}
+      return !value;
+    });
+  };
+
+  useEffect(() => {
     queueMicrotask(() => setMobileMenuOpen(false));
   }, [pathname]);
 
@@ -27,7 +43,12 @@ export function AppShell({
   }, [mobileMenuOpen]);
 
   if (isLogin) {
-    return <main>{children}</main>;
+    return (
+      <main>
+        <ThemeToggle />
+        {children}
+      </main>
+    );
   }
 
   const ToggleIcon = sidebarCollapsed ? ChevronRight : ChevronLeft;
@@ -65,6 +86,7 @@ export function AppShell({
           </span>
           <span>WTH</span>
         </div>
+        <ThemeToggle />
         <button
           type="button"
           className="mobile-menu-button"
@@ -94,17 +116,20 @@ export function AppShell({
         <button
           type="button"
           className="sidebar-toggle"
-          onClick={() => setSidebarCollapsed((value) => !value)}
-          aria-label={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
+          onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? "ขยายเมนู" : "ย่อเมนู"}
           aria-expanded={!sidebarCollapsed}
-          title={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
+          title={sidebarCollapsed ? "ขยายเมนู" : "ย่อเมนู"}
         >
-          <ToggleIcon size={18} aria-hidden="true" />
+          <ToggleIcon size={15} strokeWidth={2.5} aria-hidden="true" />
         </button>
         {sidebar}
       </div>
       <main className="app-main min-w-0 flex-1 overflow-auto mx-5 mt-5">
-        <div className="content-wrap">{children}</div>
+        <div className="content-wrap">
+          <ThemeToggle />
+          {children}
+        </div>
       </main>
     </div>
   );
