@@ -14,7 +14,7 @@ function thaiBudgetYear(): number {
 
 
 const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
-const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes" };
+const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes", "kpi_topic.flag_active": "yes" };
 const NON_CHILD_TOPIC_CONDITION = "(kpi_topic.flag_parent_or_child IS NULL OR kpi_topic.flag_parent_or_child <> 'child')";
 
 function applyDashboardTopicFilter<TRecord extends object, TResult>(
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
           .leftJoin("kpi_topic", function () {
             this.on(db.raw("JSON_CONTAINS(kpi_topic.kpi_types, CAST(kpi_type.id AS CHAR))"))
               .andOn("kpi_topic.flag_reporting", "=", db.raw("?", ["yes"]))
+              .andOn("kpi_topic.flag_active", "=", db.raw("?", ["yes"]))
               .andOn(db.raw(NON_CHILD_TOPIC_CONDITION));
           })
           .select("kpi_type.id", "kpi_type.type")

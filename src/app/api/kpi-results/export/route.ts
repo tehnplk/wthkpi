@@ -124,7 +124,8 @@ export async function GET(request: NextRequest) {
         "kpi_type.type as kpi_type",
         "kpi_topic.kpi_number",
         "kpi_topic.flag_reporting"
-      );
+      )
+      .where("kpi_topic.flag_active", "yes");
 
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
     if (departmentId) {

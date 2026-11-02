@@ -24,6 +24,7 @@ export interface KpiTopic {
   parent_kpi: number | null;
   flag_reporting: "yes" | "no";
   flag_show_guest: "yes" | "no";
+  flag_active: "yes" | "no";
   departments: KpiTopicDepartment[];
 }
 

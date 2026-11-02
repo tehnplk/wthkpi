@@ -919,6 +919,69 @@ button:disabled {
   opacity: 0.72;
 }
 
+.data-table.kpi-topics-table .kpi-topic-row-deactive td:not(.kpi-topic-action-cell) {
+  opacity: 0.55;
+}
+
+.pill-deactive {
+  background: #fff0f0;
+  color: #c24141;
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.deactive-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.deactive-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.deactive-toggle-track {
+  background: var(--line);
+  border-radius: 999px;
+  height: 1.4rem;
+  position: relative;
+  transition: background 0.15s;
+  width: 2.5rem;
+}
+
+.deactive-toggle-track::after {
+  background: white;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  content: "";
+  height: 1.1rem;
+  left: 0.15rem;
+  position: absolute;
+  top: 0.15rem;
+  transition: transform 0.15s;
+  width: 1.1rem;
+}
+
+.deactive-toggle input:checked + .deactive-toggle-track {
+  background: var(--danger);
+}
+
+.deactive-toggle input:checked + .deactive-toggle-track::after {
+  transform: translateX(1.1rem);
+}
+
+.deactive-toggle input:focus-visible + .deactive-toggle-track {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
 .kpi-topic-number-cell {
   position: relative;
 }
@@ -1573,9 +1636,9 @@ button:disabled {
 
 .kpi-topic-modal-actions {
   align-items: center;
-  column-gap: 50px;
+  column-gap: 32px;
   display: grid;
-  grid-template-columns: 1fr auto auto 1fr;
+  grid-template-columns: 1fr auto auto auto 1fr;
 }
 
 .kpi-topic-modal-actions > .btn-soft {
@@ -2306,6 +2369,11 @@ button:disabled {
   .kpi-topic-modal-actions .report-choice-option {
     flex: 1;
     min-width: 0;
+  }
+
+  .kpi-topic-modal-actions > .deactive-toggle {
+    justify-content: center;
+    padding: 0.35rem 0;
   }
 
   .kpi-result-modal-actions {

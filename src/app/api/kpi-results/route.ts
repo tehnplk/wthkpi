@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
         ),
         "kpi_topic.criteria as topic_criteria",
         "kpi_topic.note as topic_note"
-      );
+      )
+      .where("kpi_topic.flag_active", "yes");
 
     if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
     if (missionId) {

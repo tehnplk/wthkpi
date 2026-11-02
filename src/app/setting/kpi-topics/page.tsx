@@ -46,6 +46,7 @@ export default function KpiTopicsPage() {
   const [editTargetMode, setEditTargetMode] = useState<TargetMode>("year");
   const [flagReporting, setFlagReporting] = useState(true);
   const [flagShowGuest, setFlagShowGuest] = useState(true);
+  const [flagActive, setFlagActive] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
@@ -59,6 +60,7 @@ export default function KpiTopicsPage() {
   const [levelDraft, setLevelDraft] = useState("");
   const [editFlagReporting, setEditFlagReporting] = useState(true);
   const [editFlagShowGuest, setEditFlagShowGuest] = useState(true);
+  const [editFlagActive, setEditFlagActive] = useState(true);
   const [editAssignments, setEditAssignments] = useState<Assignment[]>([emptyAssignment()]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [parentTopic, setParentTopic] = useState<Topic | null>(null);
@@ -123,6 +125,7 @@ export default function KpiTopicsPage() {
     setLevelDraft("");
     setEditFlagReporting(true);
     setEditFlagShowGuest(true);
+    setEditFlagActive(true);
     setEditAssignments([emptyAssignment()]);
     setEditSelectedMissions([]);
     setParentTopic(null);
@@ -143,6 +146,7 @@ export default function KpiTopicsPage() {
     setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(true);
+    setFlagActive(true);
     setAssignments([emptyAssignment()]);
     setSelectedMissions([]);
     setError("");
@@ -164,6 +168,7 @@ export default function KpiTopicsPage() {
     setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(topic.flag_show_guest !== "no");
+    setFlagActive(true);
     setSelectedMissions([]);
     setAssignments(
       (topic.departments || []).length > 0
@@ -210,6 +215,7 @@ export default function KpiTopicsPage() {
     setLevelDraft("");
     setEditFlagReporting(topic.flag_reporting !== "no");
     setEditFlagShowGuest(topic.flag_show_guest !== "no");
+    setEditFlagActive(topic.flag_active !== "no");
     setEditSelectedMissions(getIdList(topic.mission));
     const depts = topic.departments || [];
     setEditAssignments(
@@ -246,6 +252,7 @@ export default function KpiTopicsPage() {
         parent_kpi: parentTopic?.id ?? null,
         flag_reporting: flagReporting ? "yes" : "no",
         flag_show_guest: flagShowGuest ? "yes" : "no",
+        flag_active: flagActive ? "yes" : "no",
         mission: selectedMissions,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
@@ -288,6 +295,7 @@ export default function KpiTopicsPage() {
         levels: editCalType === "level" ? editLevels : [],
         flag_reporting: editFlagReporting ? "yes" : "no",
         flag_show_guest: editFlagShowGuest ? "yes" : "no",
+        flag_active: editFlagActive ? "yes" : "no",
         mission: editSelectedMissions,
         assignments: valid.map((a) => ({
           department_id: a.deptId,
@@ -306,6 +314,38 @@ export default function KpiTopicsPage() {
       setError(message);
       notifyError(message);
     }
+  };
+
+  const createMission = async (missionName: string) => {
+    const res = await fetch("/api/missions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: missionName }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      notifyError(data.error || "เพิ่มพันธกิจไม่สำเร็จ");
+      return null;
+    }
+    setMissions((prev) => [...prev, data]);
+    notifySuccess("เพิ่มพันธกิจ สำเร็จ");
+    return data as Mission;
+  };
+
+  const renameMission = async (id: number, missionName: string) => {
+    const res = await fetch(`/api/missions/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: missionName }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      notifyError(data.error || "แก้ไขพันธกิจไม่สำเร็จ");
+      return false;
+    }
+    setMissions((prev) => prev.map((m) => (m.id === id ? data : m)));
+    notifySuccess("แก้ไขพันธกิจ สำเร็จ");
+    return true;
   };
 
   const handleDelete = async (id: number) => {
@@ -433,6 +473,8 @@ export default function KpiTopicsPage() {
   const setFlagReportingFn = isEditing ? setEditFlagReporting : setFlagReporting;
   const currentFlagShowGuest = isEditing ? editFlagShowGuest : flagShowGuest;
   const setFlagShowGuestFn = isEditing ? setEditFlagShowGuest : setFlagShowGuest;
+  const currentFlagActive = isEditing ? editFlagActive : flagActive;
+  const setFlagActiveFn = isEditing ? setEditFlagActive : setFlagActive;
   const currentCalType = isEditing ? editCalType : calType;
   const setCalTypeFn = isEditing ? setEditCalType : setCalType;
   const currentTargetMode = isEditing ? editTargetMode : targetMode;
@@ -626,6 +668,8 @@ export default function KpiTopicsPage() {
               selected={isEditing ? editSelectedMissions : selectedMissions}
               onChange={(ids) => isEditing ? setEditSelectedMissions(ids) : setSelectedMissions(ids)}
               placeholder="เลือกพันธกิจ..."
+              onCreate={createMission}
+              onRename={renameMission}
             />
           </div>
 
@@ -856,6 +900,16 @@ export default function KpiTopicsPage() {
                 ต้อง Login
               </label>
             </fieldset>
+            <label className="deactive-toggle">
+              <input
+                type="checkbox"
+                role="switch"
+                checked={!currentFlagActive}
+                onChange={(event) => setFlagActiveFn(!event.target.checked)}
+              />
+              <span className="deactive-toggle-track" aria-hidden="true" />
+              De Active
+            </label>
             <button type="submit" className="btn btn-primary">
               <Save size={16} aria-hidden="true" />
               บันทึก
@@ -928,9 +982,11 @@ export default function KpiTopicsPage() {
               pagedTopics.map((topic) => {
                 const isSubTopic = topic.flag_parent_or_child === "child";
                 const isReporting = topic.flag_reporting !== "no";
+                const isActive = topic.flag_active !== "no";
                 const rowClasses = [
                   isSubTopic ? "kpi-topic-row-sub" : "",
                   !isReporting ? "kpi-topic-row-no-reporting" : "",
+                  !isActive ? "kpi-topic-row-deactive" : "",
                 ].filter(Boolean).join(" ");
 
                 return (
@@ -958,6 +1014,7 @@ export default function KpiTopicsPage() {
                       className={`font-semibold text-[#17211d] ${isSubTopic ? "kpi-topic-name-cell-sub" : ""}`}
                     >
                       {topic.name}
+                      {!isActive && <span className="pill pill-deactive ml-2">De Active</span>}
                       {topic.criteria && (
                         <div className="text-xs font-normal text-red-500/70 mt-1">
                           <strong>({topic.criteria})</strong>
