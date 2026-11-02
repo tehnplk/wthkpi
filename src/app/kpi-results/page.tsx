@@ -642,8 +642,6 @@ export default function KpiResultsPage() {
 
       collapseTimersRef.current.set(parentId, timer);
     }
-
-    setPage(1);
   };
 
   const exportExcel = () => {
