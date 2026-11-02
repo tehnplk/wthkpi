@@ -36,9 +36,8 @@ export function MultiSelect({ options, selected, onChange, placeholder = "เล
   );
 
   const toggle = (id: number) => {
-    onChange(
-      selected.includes(id) ? selected.filter((v) => v !== id) : [...selected, id]
-    );
+    const next = selected.includes(id) ? selected.filter((v) => v !== id) : [...selected, id];
+    onChange(options.filter((o) => next.includes(o.id)).map((o) => o.id));
   };
 
   const remove = (id: number) => {
@@ -93,10 +92,11 @@ export function MultiSelect({ options, selected, onChange, placeholder = "เล
               placeholder="ค้นหา..."
               className="flex-1 text-sm border-0 outline-none bg-transparent p-0 shadow-none focus:ring-0 focus:outline-none text-[#17211d]"
               onClick={(e) => e.stopPropagation()}
-              autoFocus
+              // touch: no autofocus, the soft keyboard eats the next tap (e.g. ยกเลิก)
+              autoFocus={window.matchMedia("(pointer: fine)").matches}
             />
           </div>
-          <div className="max-h-48 overflow-y-auto p-1">
+          <div className="max-h-72 overflow-y-auto p-1">
             {filtered.length === 0 ? (
               <div className="px-2.5 py-2 text-sm text-[#8a9891]">ไม่พบรายการ</div>
             ) : (
