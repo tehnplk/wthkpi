@@ -4,7 +4,7 @@ import type { CountRow, StatusCountRow as StatusRow } from "@/app/models/common"
 import type { KpiTypeSummaryRow } from "@/app/models/dashboard";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { resultAggSub } from "@/lib/kpi-result-agg";
+import { resultAggSub, statusExpr } from "@/lib/kpi-result-agg";
 
 function thaiBudgetYear(): number {
   const now = new Date();
@@ -12,8 +12,6 @@ function thaiBudgetYear(): number {
   return now.getMonth() >= 9 ? y + 1 : y;
 }
 
-
-const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
 const REPORTING_FILTER = { "kpi_topic.flag_reporting": "yes", "kpi_topic.flag_active": "yes" };
 const NON_CHILD_TOPIC_CONDITION = "(kpi_topic.flag_parent_or_child IS NULL OR kpi_topic.flag_parent_or_child <> 'child')";
 
@@ -44,6 +42,7 @@ export async function GET(request: NextRequest) {
     const session = await getSession();
     const departmentId = request.nextUrl.searchParams.get("department_id");
     const by = thaiBudgetYear();
+    const STATUS_EXPR = statusExpr(by);
 
     const [totalTopics, totalResults, statusCounts, kpiTypeSummary, recentResults] = await Promise.all([
       applyDepartmentFilter(
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
         applyDashboardTopicFilter(
           db("kpi_topic")
             .count("* as count")
-        ).whereIn("kpi_topic.status", ["pass", "fail"]),
+        ).whereRaw(`${STATUS_EXPR} IN ('pass', 'fail')`),
         departmentId
       ).first(),
 

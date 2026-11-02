@@ -333,7 +333,8 @@ export default function KpiResultsPage() {
       setMonRateCalValue(topicData?.rate_cal_value != null ? String(topicData.rate_cal_value) : "");
       setMonKpiCriteria(topicData?.criteria || "");
       setMonKpiNote(topicData?.note || "");
-      if (topicData?.status) setMonTopicStatus(topicData.status);
+      const hasResult = vals.some(Boolean) || levelVals.some(Boolean);
+      if (hasResult && topicData?.status) setMonTopicStatus(topicData.status);
     } catch { /* ignore */ }
     setMonLoading(false);
   };
@@ -380,6 +381,9 @@ export default function KpiResultsPage() {
   const monTargetTotal = isMonthlyTarget ? monTargetSum : Number(monTarget) || 0;
   const monRate = monTargetTotal && monRateCalValue ? ((monSum / monTargetTotal) * Number(monRateCalValue)).toFixed(2) : null;
   const isLevelCal = monCalType === "level";
+  // Without any monthly result the only allowed status is pending.
+  const monHasResult = isLevelCal ? monLevelValues.some(Boolean) : monValues.some(Boolean);
+  const monStatus = monHasResult ? monTopicStatus : "pending";
 
   const monCumulativeRates: (number | null)[] = [];
   for (let i = 0, cumResult = 0, cumTarget = 0; i < monValues.length; i++) {
@@ -452,8 +456,8 @@ export default function KpiResultsPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(isLevelCal
-            ? { status: monTopicStatus }
-            : { status: monTopicStatus, rate_cal_value: monRateCalValue ? Number(monRateCalValue) : null }),
+            ? { status: monStatus }
+            : { status: monStatus, rate_cal_value: monRateCalValue ? Number(monRateCalValue) : null }),
         }),
       ]);
       if (!resMon.ok) {
@@ -742,7 +746,9 @@ export default function KpiResultsPage() {
                     key={key}
                     type="button"
                     onClick={() => setMonTopicStatus(key)}
-                    className={`toggle-btn ${monTopicStatus === key ? `toggle-active toggle-${key}` : ""}`}
+                    disabled={!monHasResult && key !== "pending"}
+                    title={!monHasResult && key !== "pending" ? "ยังไม่มีผลงาน" : undefined}
+                    className={`toggle-btn ${monStatus === key ? `toggle-active toggle-${key}` : ""}`}
                   >
                     <ToggleStatusIcon size={13} aria-hidden="true" />
                     {label}
@@ -895,7 +901,9 @@ export default function KpiResultsPage() {
                           key={key}
                           type="button"
                           onClick={() => setMonTopicStatus(key)}
-                          className={`toggle-btn ${monTopicStatus === key ? `toggle-active toggle-${key}` : ""}`}
+                          disabled={!monHasResult && key !== "pending"}
+                          title={!monHasResult && key !== "pending" ? "ยังไม่มีผลงาน" : undefined}
+                          className={`toggle-btn ${monStatus === key ? `toggle-active toggle-${key}` : ""}`}
                         >
                           <ToggleStatusIcon size={13} aria-hidden="true" />
                           {statusLabels[key]}

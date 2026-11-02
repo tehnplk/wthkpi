@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { resultAggSub } from "@/lib/kpi-result-agg";
-
-const STATUS_EXPR = "COALESCE(kpi_topic.status, 'pending')";
+import { resultAggSub, statusExpr } from "@/lib/kpi-result-agg";
 
 function thaiBudgetYear(): number {
   const now = new Date();
@@ -25,6 +23,7 @@ export async function GET(request: NextRequest) {
       : thaiBudgetYear();
 
     const aggSub = resultAggSub(budgetYear);
+    const STATUS_EXPR = statusExpr(budgetYear);
 
     let query = db("kpi_topic")
       .leftJoin(aggSub, function () {
