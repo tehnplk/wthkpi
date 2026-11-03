@@ -1,9 +1,16 @@
 import db from "@/lib/db";
 
-// A topic with no monthly result (number or level) in the budget year is always pending.
+// Current/future budget years: pending until the current month (1 = Oct) has its target and result (or level);
+// future years have no current month yet. Yearly targets are stored on every month row.
+// Past budget years: pending only when the whole year has no result.
 export function statusExpr(budgetYear: number) {
   const year = Math.trunc(budgetYear) || 0;
-  return `CASE WHEN EXISTS (SELECT 1 FROM kpi_result_mon sr WHERE sr.kpi_id = kpi_topic.id AND sr.budget_year = ${year} AND (sr.result IS NOT NULL OR sr.result_level IS NOT NULL)) THEN COALESCE(kpi_topic.status, 'pending') ELSE 'pending' END`;
+  const now = new Date();
+  const currentYear = now.getFullYear() + 543 + (now.getMonth() >= 9 ? 1 : 0);
+  const reported = year < currentYear
+    ? "(sr.result IS NOT NULL OR sr.result_level IS NOT NULL)"
+    : `sr.mon = ${year > currentYear ? 0 : ((now.getMonth() + 3) % 12) + 1} AND (CASE WHEN kpi_topic.cal_type = 'level' THEN sr.result_level IS NOT NULL ELSE sr.result IS NOT NULL AND sr.target IS NOT NULL END)`;
+  return `CASE WHEN EXISTS (SELECT 1 FROM kpi_result_mon sr WHERE sr.kpi_id = kpi_topic.id AND sr.budget_year = ${year} AND ${reported}) THEN COALESCE(kpi_topic.status, 'pending') ELSE 'pending' END`;
 }
 
 // Yearly target is stored on every month row, so take MAX; monthly targets add up.

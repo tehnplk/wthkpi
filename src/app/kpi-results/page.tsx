@@ -354,8 +354,7 @@ export default function KpiResultsPage() {
       setMonRateCalValue(topicData?.rate_cal_value != null ? String(topicData.rate_cal_value) : "");
       setMonKpiCriteria(topicData?.criteria || "");
       setMonKpiNote(topicData?.note || "");
-      const hasResult = vals.some(Boolean) || levelVals.some(Boolean);
-      if (hasResult && topicData?.status) setMonTopicStatus(topicData.status);
+      if (topicData?.status) setMonTopicStatus(topicData.status);
     } catch { /* ignore */ }
     setMonLoading(false);
   };
@@ -402,9 +401,19 @@ export default function KpiResultsPage() {
   const monTargetTotal = isMonthlyTarget ? monTargetSum : Number(monTarget) || 0;
   const monRate = monTargetTotal && monRateCalValue ? ((monSum / monTargetTotal) * Number(monRateCalValue)).toFixed(2) : null;
   const isLevelCal = monCalType === "level";
-  // Without any monthly result the only allowed status is pending.
-  const monHasResult = isLevelCal ? monLevelValues.some(Boolean) : monValues.some(Boolean);
+  // Pending is automatic (same rule as statusExpr): current/future years need the current month's
+  // target and result; past years only need a result in any month.
+  const currentBudgetYear = thaiBudgetYear();
+  const isPastYear = monBudgetYear < currentBudgetYear;
+  const monCurrentIdx = monBudgetYear > currentBudgetYear ? -1 : (new Date().getMonth() + 3) % 12;
+  const monHasResult = isPastYear
+    ? (isLevelCal ? monLevelValues.some(Boolean) : monValues.some(Boolean))
+    : monCurrentIdx >= 0 && (isLevelCal
+      ? Boolean(monLevelValues[monCurrentIdx])
+      : Boolean(monValues[monCurrentIdx]) && Boolean(isMonthlyTarget ? monTargets[monCurrentIdx] : monTarget));
   const monStatus = monHasResult ? monTopicStatus : "pending";
+  const monPendingTitle = isPastYear ? "ยังไม่มีผลงาน"
+    : monCurrentIdx >= 0 ? `ยังไม่มีเป้าหมาย/ผลงานเดือน ${MONTHS[monCurrentIdx]}` : "ยังไม่ถึงปีงบประมาณ";
 
   const monCumulativeRates: (number | null)[] = [];
   for (let i = 0, cumResult = 0, cumTarget = 0; i < monValues.length; i++) {
@@ -767,8 +776,8 @@ export default function KpiResultsPage() {
                     key={key}
                     type="button"
                     onClick={() => setMonTopicStatus(key)}
-                    disabled={!monHasResult && key !== "pending"}
-                    title={!monHasResult && key !== "pending" ? "ยังไม่มีผลงาน" : undefined}
+                    disabled={key === "pending" || !monHasResult}
+                    title={key === "pending" ? "กำหนดอัตโนมัติ" : !monHasResult ? monPendingTitle : undefined}
                     className={`toggle-btn ${monStatus === key ? `toggle-active toggle-${key}` : ""}`}
                   >
                     <ToggleStatusIcon size={13} aria-hidden="true" />
@@ -922,8 +931,8 @@ export default function KpiResultsPage() {
                           key={key}
                           type="button"
                           onClick={() => setMonTopicStatus(key)}
-                          disabled={!monHasResult && key !== "pending"}
-                          title={!monHasResult && key !== "pending" ? "ยังไม่มีผลงาน" : undefined}
+                          disabled={key === "pending" || !monHasResult}
+                          title={key === "pending" ? "กำหนดอัตโนมัติ" : !monHasResult ? monPendingTitle : undefined}
                           className={`toggle-btn ${monStatus === key ? `toggle-active toggle-${key}` : ""}`}
                         >
                           <ToggleStatusIcon size={13} aria-hidden="true" />
