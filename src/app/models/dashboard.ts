@@ -24,6 +24,7 @@ export interface DashboardResultRow {
   kpi_name: string;
   kpi_type_id: number | null;
   kpi_type: string | null;
+  kpi_types: number[] | string | null;
   kpi_number: string | null;
   target: number | null;
   result: number | null;

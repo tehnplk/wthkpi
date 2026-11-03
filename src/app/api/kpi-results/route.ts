@@ -56,7 +56,12 @@ export async function GET(request: NextRequest) {
       )
       .where("kpi_topic.flag_active", "yes");
 
-    if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
+    if (kpiTypeId) {
+      query = query.where(function () {
+        this.where("kpi_topic.kpi_type_id", kpiTypeId)
+          .orWhereRaw("JSON_CONTAINS(kpi_topic.kpi_types, ?)", [String(Number(kpiTypeId))]);
+      });
+    }
     if (missionId) {
       query = query.whereRaw("JSON_CONTAINS(kpi_topic.mission, ?)", [JSON.stringify(Number(missionId))]);
     }

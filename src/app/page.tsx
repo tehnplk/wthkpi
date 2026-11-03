@@ -107,6 +107,21 @@ export default function DashboardPage() {
     [data?.recentResults, sortBy, sortDir]
   );
 
+  const renderTypeBadges = (r: DashboardData["recentResults"][number]) => {
+    let ids: number[] = [];
+    try {
+      const parsed = typeof r.kpi_types === "string" ? JSON.parse(r.kpi_types) : r.kpi_types;
+      if (Array.isArray(parsed)) ids = parsed.map(Number);
+    } catch {}
+    if (ids.length === 0 && r.kpi_type_id != null) ids = [r.kpi_type_id];
+    if (ids.length === 0) return <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(null)}`}>-</span>;
+    return ids.map((typeId) => (
+      <span key={typeId} className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(typeId)}`}>
+        {data?.kpiTypeSummary.find((t) => t.id === typeId)?.type || r.kpi_type || "-"}
+      </span>
+    ));
+  };
+
   if (loading) {
     return <div className="loading-state">กำลังโหลดแดชบอร์ด...</div>;
   }
@@ -243,7 +258,7 @@ export default function DashboardPage() {
                   <td data-label="#" className="dashboard-recent-number-cell w-12">
                     {r.kpi_number ? <span className="number-badge kpi-number-badge">{r.kpi_number}</span> : "-"}
                     <div className="dashboard-recent-type-under-number dashboard-recent-type-mobile">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
+                      {renderTypeBadges(r)}
                     </div>
                   </td>
                   <td data-label="KPI" className="dashboard-recent-kpi-cell font-semibold text-[#17211d]">
@@ -251,8 +266,8 @@ export default function DashboardPage() {
                     {r.topic_note && (
                       <div className="text-xs font-normal text-gray-500 mt-1">{r.topic_note}</div>
                     )}
-                    <div className="mt-1 dashboard-recent-type-desktop">
-                      <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(r.kpi_type_id)}`}>{r.kpi_type || "-"}</span>
+                    <div className="mt-1 dashboard-recent-type-desktop flex flex-wrap gap-1">
+                      {renderTypeBadges(r)}
                     </div>
                   </td>
                   <td data-label="จำนวนกลุ่มเป้าหมาย">

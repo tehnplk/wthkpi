@@ -120,13 +120,20 @@ export async function GET(request: NextRequest) {
         "kpi_topic.criteria as topic_criteria",
         "kpi_topic.note as topic_note",
         "kpi_topic.kpi_type_id",
-        "kpi_type.type as kpi_type",
+        db.raw(
+          "COALESCE((SELECT GROUP_CONCAT(t.type ORDER BY t.id SEPARATOR ', ') FROM kpi_type t WHERE JSON_CONTAINS(kpi_topic.kpi_types, CAST(t.id AS CHAR))), kpi_type.type) as kpi_type"
+        ),
         "kpi_topic.kpi_number",
         "kpi_topic.flag_reporting"
       )
       .where("kpi_topic.flag_active", "yes");
 
-    if (kpiTypeId) query = query.where("kpi_topic.kpi_type_id", kpiTypeId);
+    if (kpiTypeId) {
+      query = query.where(function () {
+        this.where("kpi_topic.kpi_type_id", kpiTypeId)
+          .orWhereRaw("JSON_CONTAINS(kpi_topic.kpi_types, ?)", [String(Number(kpiTypeId))]);
+      });
+    }
     if (departmentId) {
       query = query.whereExists(function () {
         this.select(db.raw("1"))

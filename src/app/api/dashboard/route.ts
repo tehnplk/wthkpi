@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
             "kpi_topic.name as kpi_name",
             "kpi_topic.kpi_type_id",
             "kpi_type.type as kpi_type",
+            "kpi_topic.kpi_types",
             "kpi_topic.kpi_number",
             "kpi_topic.note as topic_note"
           )

@@ -153,6 +153,27 @@ export default function KpiResultsPage() {
       .map((id) => missions.find((m) => m.id === id)?.name)
       .filter((name): name is string => Boolean(name));
   };
+
+  const getTypeIdsForTopic = (kpiId: number, fallback: number | null): number[] => {
+    const ids = getMissionIds(topics.find((t) => t.id === kpiId)?.kpi_types);
+    return ids.length > 0 ? ids : fallback != null ? [fallback] : [];
+  };
+
+  const renderTypeBadges = (row: Result, extraClass = "") => {
+    const ids = getTypeIdsForTopic(row.kpi_id, row.kpi_type_id);
+    if (ids.length === 0) {
+      return (
+        <span className={`pill pill-kpi-type-badge ${extraClass} ${kpiTypeBadgeClass(null)}`}>
+          <span className="pill-kpi-type-label">-</span>
+        </span>
+      );
+    }
+    return ids.map((typeId) => (
+      <span key={typeId} className={`pill pill-kpi-type-badge ${extraClass} ${kpiTypeBadgeClass(typeId)}`}>
+        <span className="pill-kpi-type-label">{kpiTypes.find((t) => t.id === typeId)?.type || row.kpi_type || "-"}</span>
+      </span>
+    ));
+  };
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [error, setError] = useState("");
 
@@ -1123,14 +1144,10 @@ export default function KpiResultsPage() {
                   >
                     {isChildRow && <span className="kpi-result-child-marker" aria-hidden="true" />}
                     {row.kpi_number ? <span className="number-badge kpi-number-badge">{row.kpi_number}</span> : "-"}
-                    <span className={`pill pill-kpi-type-badge result-type-mobile ${kpiTypeBadgeClass(row.kpi_type_id)}`}>
-                      <span className="pill-kpi-type-label">{row.kpi_type || "-"}</span>
-                    </span>
+                    {renderTypeBadges(row, "result-type-mobile")}
                   </td>
                   <td data-label="ประเภท" className="result-type-cell">
-                    <span className={`pill pill-kpi-type-badge ${kpiTypeBadgeClass(row.kpi_type_id)}`}>
-                      <span className="pill-kpi-type-label">{row.kpi_type || "-"}</span>
-                    </span>
+                    <div className="topic-department-list">{renderTypeBadges(row)}</div>
                   </td>
                   <td data-label="ตัวชี้วัด" className="result-topic-cell font-semibold text-[#17211d]">
                     {row.kpi_name}
