@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
       cal_type: body.cal_type === "level" ? "level" : "rate",
       target_mode: body.target_mode === "month" ? "month" : "year",
       levels: Array.isArray(body.levels) && body.levels.length > 0 ? JSON.stringify(body.levels) : null,
+      flag_chart_negative: body.flag_chart_negative === "yes" ? "yes" : "no",
       flag_parent_or_child: isChildTopic ? "child" : "parent",
       parent_kpi: isChildTopic ? body.parent_kpi || null : null,
       flag_reporting: body.flag_reporting || "yes",

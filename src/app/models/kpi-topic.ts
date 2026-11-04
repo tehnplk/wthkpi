@@ -20,6 +20,7 @@ export interface KpiTopic {
   cal_type: "rate" | "level";
   target_mode: "year" | "month";
   levels: string[] | string | null;
+  flag_chart_negative: "yes" | "no";
   flag_parent_or_child: "parent" | "child" | null;
   parent_kpi: number | null;
   flag_reporting: "yes" | "no";

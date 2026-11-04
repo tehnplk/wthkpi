@@ -1866,6 +1866,11 @@ button:disabled {
   stroke-width: 1;
 }
 
+.month-chart-zero {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+
 .month-chart-axis {
   fill: var(--muted);
   font-size: 11px;
@@ -1892,6 +1897,10 @@ button:disabled {
 
 .month-chart-bar {
   fill: var(--accent);
+}
+
+.month-chart-bar-negative {
+  fill: var(--danger);
 }
 
 .rate-formula-input:focus {

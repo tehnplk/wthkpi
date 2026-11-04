@@ -42,6 +42,8 @@ export default function KpiTopicsPage() {
   const [rateCalValue, setRateCalValue] = useState("");
   const [calType, setCalType] = useState<CalType>("rate");
   const [levels, setLevels] = useState<string[]>([]);
+  const [chartNegative, setChartNegative] = useState(false);
+  const [editChartNegative, setEditChartNegative] = useState(false);
   const [targetMode, setTargetMode] = useState<TargetMode>("year");
   const [editTargetMode, setEditTargetMode] = useState<TargetMode>("year");
   const [flagReporting, setFlagReporting] = useState(true);
@@ -122,6 +124,7 @@ export default function KpiTopicsPage() {
     setEditCalType("rate");
     setEditTargetMode("year");
     setEditLevels([]);
+    setEditChartNegative(false);
     setLevelDraft("");
     setEditFlagReporting(true);
     setEditFlagShowGuest(true);
@@ -143,6 +146,7 @@ export default function KpiTopicsPage() {
     setCalType("rate");
     setTargetMode("year");
     setLevels([]);
+    setChartNegative(false);
     setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(true);
@@ -165,6 +169,7 @@ export default function KpiTopicsPage() {
     setCalType(topic.cal_type || "rate");
     setTargetMode(topic.target_mode || "year");
     setLevels(parseLevels(topic.levels));
+    setChartNegative(topic.flag_chart_negative === "yes");
     setLevelDraft("");
     setFlagReporting(true);
     setFlagShowGuest(topic.flag_show_guest !== "no");
@@ -212,6 +217,7 @@ export default function KpiTopicsPage() {
     setEditCalType(topic.cal_type || "rate");
     setEditTargetMode(topic.target_mode || "year");
     setEditLevels(parseLevels(topic.levels));
+    setEditChartNegative(topic.flag_chart_negative === "yes");
     setLevelDraft("");
     setEditFlagReporting(topic.flag_reporting !== "no");
     setEditFlagShowGuest(topic.flag_show_guest !== "no");
@@ -248,6 +254,7 @@ export default function KpiTopicsPage() {
         cal_type: calType,
         target_mode: targetMode,
         levels: calType === "level" ? levels : [],
+        flag_chart_negative: calType === "level" && chartNegative ? "yes" : "no",
         flag_parent_or_child: parentTopic ? "child" : "parent",
         parent_kpi: parentTopic?.id ?? null,
         flag_reporting: flagReporting ? "yes" : "no",
@@ -293,6 +300,7 @@ export default function KpiTopicsPage() {
         cal_type: editCalType,
         target_mode: editTargetMode,
         levels: editCalType === "level" ? editLevels : [],
+        flag_chart_negative: editCalType === "level" && editChartNegative ? "yes" : "no",
         flag_reporting: editFlagReporting ? "yes" : "no",
         flag_show_guest: editFlagShowGuest ? "yes" : "no",
         flag_active: editFlagActive ? "yes" : "no",
@@ -481,6 +489,8 @@ export default function KpiTopicsPage() {
   const setTargetModeFn = isEditing ? setEditTargetMode : setTargetMode;
   const currentLevels = isEditing ? editLevels : levels;
   const setLevelsFn = isEditing ? setEditLevels : setLevels;
+  const currentChartNegative = isEditing ? editChartNegative : chartNegative;
+  const setChartNegativeFn = isEditing ? setEditChartNegative : setChartNegative;
 
   const addLevel = () => {
     const value = levelDraft.trim();
@@ -753,6 +763,14 @@ export default function KpiTopicsPage() {
                       ))}
                     </div>
                   )}
+                  <label className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                    <input
+                      type="checkbox"
+                      checked={currentChartNegative}
+                      onChange={(event) => setChartNegativeFn(event.target.checked)}
+                    />
+                    แสดงชาร์ทเป็นค่าลบ
+                  </label>
                 </div>
               ) : (
               <div className="space-y-2">

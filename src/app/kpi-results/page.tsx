@@ -206,6 +206,7 @@ export default function KpiResultsPage() {
   const [monTargetMode, setMonTargetMode] = useState<Topic["target_mode"]>("year");
   const [monTargets, setMonTargets] = useState<string[]>(Array(12).fill(""));
   const [monLevels, setMonLevels] = useState<string[]>([]);
+  const [monChartNegative, setMonChartNegative] = useState(false);
   const [monLevelValues, setMonLevelValues] = useState<string[]>(Array(12).fill(""));
   const [monLastUpdatedAt, setMonLastUpdatedAt] = useState<string | null>(null);
   const [monLastUpdatedBy, setMonLastUpdatedBy] = useState<string | null>(null);
@@ -350,6 +351,7 @@ export default function KpiResultsPage() {
       setMonTargetMode(topicData?.target_mode || "year");
       setMonTargets(targetVals);
       setMonLevels(parseLevels(topicData?.levels));
+      setMonChartNegative(topicData?.flag_chart_negative === "yes");
       setMonTarget(tg);
       setMonRateCalValue(topicData?.rate_cal_value != null ? String(topicData.rate_cal_value) : "");
       setMonKpiCriteria(topicData?.criteria || "");
@@ -374,6 +376,7 @@ export default function KpiResultsPage() {
     setMonTargetMode("year");
     setMonTargets(Array(12).fill(""));
     setMonLevels([]);
+    setMonChartNegative(false);
     setMonLastUpdatedAt(null);
     setMonLastUpdatedBy(null);
     setMonError("");
@@ -966,6 +969,7 @@ export default function KpiResultsPage() {
                 labels={MONTHS}
                 values={monLevelSeries}
                 levelNames={monLevels}
+                negative={monChartNegative}
               />
             ) : (
               <MonthChart title="อัตราสะสม" kind="line" labels={MONTHS} values={monCumulativeRates} />
