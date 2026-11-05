@@ -1068,6 +1068,19 @@ export default function KpiTopicsPage() {
                           หมายเหตุ : {topic.note}
                         </div>
                       )}
+                      {topic.template_url && (
+                        <div>
+                          <a
+                            href={topic.template_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="pill pill-template"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            เทมเพลท
+                          </a>
+                        </div>
+                      )}
                     </td>
                     <td data-label="หน่วยงานรับผิดชอบ">
                       <div className="topic-department-list">

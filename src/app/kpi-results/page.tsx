@@ -1169,16 +1169,6 @@ export default function KpiResultsPage() {
                         <strong>({row.topic_criteria})</strong>
                       </div>
                     )}
-                    {row.topic_template_url && (
-                      <a
-                        href={row.topic_template_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-xs font-normal text-blue-600 underline mt-0.5"
-                      >
-                        Template ตัวชี้วัด
-                      </a>
-                    )}
                     {getMissionListForTopic(row.kpi_id).length > 0 && (
                       <div className="text-xs font-normal text-emerald-700/80 mt-1 space-y-0.5">
                         {getMissionListForTopic(row.kpi_id).map((mName, i) => (
@@ -1196,6 +1186,19 @@ export default function KpiResultsPage() {
                         {departmentLabels(row.kpi_id).map((department) => (
                           <span key={department} className="result-department-badge">{department}</span>
                         ))}
+                      </div>
+                    )}
+                    {row.topic_template_url && (
+                      <div>
+                        <a
+                          href={row.topic_template_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="pill pill-template"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          เทมเพลท
+                        </a>
                       </div>
                     )}
                   </td>

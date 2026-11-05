@@ -1403,6 +1403,18 @@ button:disabled {
   color: #61716a;
 }
 
+.pill-template {
+  background: #eaf8f0;
+  border: 1px solid #b5e3c8;
+  color: #1f7a4d;
+  margin-top: 0.35rem;
+  text-decoration: none;
+}
+
+.pill-template:hover {
+  background: #d8f2e3;
+}
+
 .number-badge {
   align-items: center;
   background: #46e4f0;
