@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       kpi_number: body.kpi_number || null,
       note: body.note || null,
       criteria: body.criteria || null,
+      template_url: /^https?:\/\//i.test(body.template_url ?? "") ? body.template_url.trim() : null,
       rate_cal_value: body.rate_cal_value ?? null,
       cal_type: body.cal_type === "level" ? "level" : "rate",
       target_mode: body.target_mode === "month" ? "month" : "year",

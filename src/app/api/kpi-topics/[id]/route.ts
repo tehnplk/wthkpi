@@ -60,7 +60,7 @@ export async function PUT(
     }
 
     if (session?.role !== "admin") {
-      const restrictedFields = ["name", "kpi_types", "kpi_number", "note", "criteria", "mission", "assignments", "flag_show_guest", "flag_active", "cal_type", "levels", "flag_chart_negative", "target_mode"];
+      const restrictedFields = ["name", "kpi_types", "kpi_number", "note", "criteria", "template_url", "mission", "assignments", "flag_show_guest", "flag_active", "cal_type", "levels", "flag_chart_negative", "target_mode"];
       if (restrictedFields.some((field) => body[field] !== undefined)) {
         return NextResponse.json({ error: "ไม่มีสิทธิ์แก้ไขข้อมูลตั้งค่า KPI" }, { status: 403 });
       }
@@ -76,6 +76,7 @@ export async function PUT(
     if (body.kpi_number !== undefined) updateData.kpi_number = body.kpi_number || null;
     if (body.note !== undefined) updateData.note = body.note || null;
     if (body.criteria !== undefined) updateData.criteria = body.criteria || null;
+    if (body.template_url !== undefined) updateData.template_url = /^https?:\/\//i.test(body.template_url ?? "") ? body.template_url.trim() : null;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.rate_cal_value !== undefined) updateData.rate_cal_value = body.rate_cal_value;
     if (body.cal_type !== undefined) updateData.cal_type = body.cal_type === "level" ? "level" : "rate";

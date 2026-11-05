@@ -16,6 +16,7 @@ export interface KpiTopic {
   note: string | null;
   mission: number[] | null;
   criteria: string | null;
+  template_url: string | null;
   rate_cal_value: number | null;
   cal_type: "rate" | "level";
   target_mode: "year" | "month";

@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
           [budgetYear]
         ),
         "kpi_topic.criteria as topic_criteria",
+        "kpi_topic.template_url as topic_template_url",
         "kpi_topic.note as topic_note"
       )
       .where("kpi_topic.flag_active", "yes");

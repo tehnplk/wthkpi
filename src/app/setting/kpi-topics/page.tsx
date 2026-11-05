@@ -56,6 +56,8 @@ export default function KpiTopicsPage() {
   const [editKpiNumber, setEditKpiNumber] = useState("");
   const [editNote, setEditNote] = useState("");
   const [editCriteria, setEditCriteria] = useState("");
+  const [templateUrl, setTemplateUrl] = useState("");
+  const [editTemplateUrl, setEditTemplateUrl] = useState("");
   const [editRateCalValue, setEditRateCalValue] = useState("");
   const [editCalType, setEditCalType] = useState<CalType>("rate");
   const [editLevels, setEditLevels] = useState<string[]>([]);
@@ -120,6 +122,7 @@ export default function KpiTopicsPage() {
     setEditKpiNumber("");
     setEditNote("");
     setEditCriteria("");
+    setEditTemplateUrl("");
     setEditRateCalValue("");
     setEditCalType("rate");
     setEditTargetMode("year");
@@ -142,6 +145,7 @@ export default function KpiTopicsPage() {
     setKpiNumber("");
     setNote("");
     setCriteria("");
+    setTemplateUrl("");
     setRateCalValue("");
     setCalType("rate");
     setTargetMode("year");
@@ -165,6 +169,7 @@ export default function KpiTopicsPage() {
     setKpiNumber(topic.kpi_number ? `${topic.kpi_number}.` : "");
     setNote("");
     setCriteria("");
+    setTemplateUrl("");
     setRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setCalType(topic.cal_type || "rate");
     setTargetMode(topic.target_mode || "year");
@@ -213,6 +218,7 @@ export default function KpiTopicsPage() {
     setEditKpiNumber(topic.kpi_number || "");
     setEditNote(topic.note || "");
     setEditCriteria(topic.criteria || "");
+    setEditTemplateUrl(topic.template_url || "");
     setEditRateCalValue(integerDisplayValue(topic.rate_cal_value));
     setEditCalType(topic.cal_type || "rate");
     setEditTargetMode(topic.target_mode || "year");
@@ -250,6 +256,7 @@ export default function KpiTopicsPage() {
         kpi_number: kpiNumber.trim() || null,
         note: note.trim() || null,
         criteria: criteria.trim() || null,
+        template_url: templateUrl.trim() || null,
         rate_cal_value: calType === "rate" && rateCalValue ? Number.parseInt(rateCalValue, 10) : null,
         cal_type: calType,
         target_mode: targetMode,
@@ -296,6 +303,7 @@ export default function KpiTopicsPage() {
         kpi_number: editKpiNumber.trim() || null,
         note: editNote.trim() || null,
         criteria: editCriteria.trim() || null,
+        template_url: editTemplateUrl.trim() || null,
         rate_cal_value: editCalType === "rate" && editRateCalValue ? Number.parseInt(editRateCalValue, 10) : null,
         cal_type: editCalType,
         target_mode: editTargetMode,
@@ -693,6 +701,16 @@ export default function KpiTopicsPage() {
                 maxLength={255}
                 value={isEditing ? editCriteria : criteria}
                 onChange={(event) => isEditing ? setEditCriteria(event.target.value) : setCriteria(event.target.value)}
+              />
+              <label htmlFor="topic-template-url" className="mt-2">URL Template ตัวชี้วัด</label>
+              <input
+                id="topic-template-url"
+                type="url"
+                autoComplete="off"
+                maxLength={500}
+                placeholder="https://..."
+                value={isEditing ? editTemplateUrl : templateUrl}
+                onChange={(event) => isEditing ? setEditTemplateUrl(event.target.value) : setTemplateUrl(event.target.value)}
               />
             </div>
 

@@ -17,6 +17,7 @@ export interface KpiResultRow {
   parent_kpi: number | null;
   flag_reporting: "yes" | "no";
   topic_criteria: string | null;
+  topic_template_url: string | null;
   topic_note: string | null;
   target: number | null;
   result: number | null;
